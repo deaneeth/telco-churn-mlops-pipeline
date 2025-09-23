@@ -1,0 +1,44 @@
+{
+  "dataset_info": {
+    "total_rows": 7043,
+    "total_columns": 21,
+    "features_count": 19,
+    "target_column": "Churn"
+  },
+  "churn_distribution": {
+    "Yes": 1869,
+    "No": 5174,
+    "churn_rate_percent": 26.54
+  },
+  "columns": {
+    "numeric": [
+      "SeniorCitizen",
+      "tenure",
+      "MonthlyCharges",
+      "TotalCharges"
+    ],
+    "categorical": [
+      "gender",
+      "Partner",
+      "Dependents",
+      "PhoneService",
+      "MultipleLines",
+      "InternetService",
+      "OnlineSecurity",
+      "OnlineBackup",
+      "DeviceProtection",
+      "TechSupport",
+      "StreamingTV",
+      "StreamingMovies",
+      "Contract",
+      "PaperlessBilling",
+      "PaymentMethod"
+    ],
+    "target": "Churn",
+    "identifier": "customerID"
+  },
+  "data_quality": {
+    "total_charges_na_count": 11,
+    "total_charges_converted": true
+  }
+}

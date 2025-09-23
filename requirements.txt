@@ -1,0 +1,13 @@
+pandas
+numpy
+scikit-learn
+joblib
+mlflow
+pytest
+flask
+pyspark
+apache-airflow
+matplotlib
+python-dotenv
+openpyxl
+seaborn

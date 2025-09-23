@@ -1,0 +1,11 @@
+__pycache__/
+.venv/
+venv/
+*.pyc
+.DS_Store
+data/raw/*
+!data/raw/.gitkeep
+artifacts/
+mlruns/
+*.egg-info/
+.env
