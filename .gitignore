@@ -9,3 +9,4 @@ artifacts/
 mlruns/
 *.egg-info/
 .env
+/Mini-Project-1-Productionising-Telco-Churn-Prediction.pdf
