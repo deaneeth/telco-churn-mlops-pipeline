@@ -11,8 +11,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy source code
 COPY src/ src/
 
-# Copy the trained model
+# Copy the trained model and feature metadata
 COPY artifacts/models/sklearn_pipeline.joblib artifacts/models/sklearn_pipeline.joblib
+COPY artifacts/models/feature_names.json artifacts/models/feature_names.json
 
 # Expose port 5000
 EXPOSE 5000
