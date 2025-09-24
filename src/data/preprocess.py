@@ -56,7 +56,7 @@ def fit_save_preprocessor(input_csv, out_path):
         out_path = Path(out_path)
         columns_path = Path("data/processed/columns.json")
         
-        print(f"📂 Loading data from {input_csv}")
+        print(f"[INFO] Loading data from {input_csv}")
         
         # Check if input file exists
         if not input_csv.exists():
@@ -77,7 +77,7 @@ def fit_save_preprocessor(input_csv, out_path):
         numeric_cols = metadata['columns']['numeric']
         categorical_cols = metadata['columns']['categorical']
         
-        print(f"📊 Column Information:")
+        print(f"[INFO] Column Information:")
         print(f"   Numeric columns ({len(numeric_cols)}): {numeric_cols}")
         print(f"   Categorical columns ({len(categorical_cols)}): {categorical_cols}")
         
@@ -89,7 +89,7 @@ def fit_save_preprocessor(input_csv, out_path):
         feature_cols = numeric_cols + categorical_cols
         X = df[feature_cols]
         
-        print(f"🔧 Building and fitting preprocessor...")
+        print(f"[INFO] Building and fitting preprocessor...")
         
         # Build preprocessor
         preprocessor = build_preprocessor(numeric_cols, categorical_cols)
@@ -124,7 +124,7 @@ def fit_save_preprocessor(input_csv, out_path):
         
         # Save the fitted preprocessor
         joblib.dump(preprocessor, out_path)
-        print(f"💾 Saved preprocessor to {out_path}")
+        print(f"[SUCCESS] Saved preprocessor to {out_path}")
         
         # Save feature names for reference
         feature_names_path = out_path.parent / "feature_names.json"
@@ -135,15 +135,15 @@ def fit_save_preprocessor(input_csv, out_path):
                 'categorical_features': categorical_cols,
                 'total_features': len(feature_names)
             }, f, indent=2)
-        print(f"💾 Saved feature names to {feature_names_path}")
+        print(f"[SUCCESS] Saved feature names to {feature_names_path}")
         
         return preprocessor, feature_names, X_transformed
         
     except FileNotFoundError as e:
-        print(f"❌ ERROR: {e}")
+        print(f"[ERROR] {e}")
         return None, None, None
     except Exception as e:
-        print(f"❌ ERROR: An unexpected error occurred - {e}")
+        print(f"[ERROR] An unexpected error occurred - {e}")
         return None, None, None
 
 def load_preprocessor(preprocessor_path):
@@ -162,11 +162,11 @@ def load_preprocessor(preprocessor_path):
             raise FileNotFoundError(f"Preprocessor not found: {preprocessor_path}")
         
         preprocessor = joblib.load(preprocessor_path)
-        print(f"📂 Loaded preprocessor from {preprocessor_path}")
+        print(f"[SUCCESS] Loaded preprocessor from {preprocessor_path}")
         return preprocessor
         
     except Exception as e:
-        print(f"❌ ERROR: Failed to load preprocessor - {e}")
+        print(f"[ERROR] Failed to load preprocessor - {e}")
         return None
 
 def transform_data(preprocessor, data, feature_cols=None):
@@ -188,11 +188,11 @@ def transform_data(preprocessor, data, feature_cols=None):
             X = data
         
         X_transformed = preprocessor.transform(X)
-        print(f"🔧 Transformed data shape: {X_transformed.shape}")
+        print(f"[INFO] Transformed data shape: {X_transformed.shape}")
         return X_transformed
         
     except Exception as e:
-        print(f"❌ ERROR: Failed to transform data - {e}")
+        print(f"[ERROR] Failed to transform data - {e}")
         return None
 
 def main():
@@ -203,24 +203,24 @@ def main():
     input_file = "data/raw/Telco-Customer-Churn.csv"
     output_file = "artifacts/models/preprocessor.joblib"
     
-    print("🚀 Starting preprocessing pipeline...")
+    print("[INFO] Starting preprocessing pipeline...")
     
     # Fit and save preprocessor
     preprocessor, feature_names, X_transformed = fit_save_preprocessor(input_file, output_file)
     
     if preprocessor is not None:
-        print(f"\n✅ Preprocessing completed successfully!")
+        print(f"\n[SUCCESS] Preprocessing completed successfully!")
         print(f"   Preprocessor saved to: {output_file}")
         print(f"   Transformed data shape: {X_transformed.shape}")
         print(f"   Total features after transformation: {len(feature_names)}")
         
         # Test loading the preprocessor
-        print(f"\n🧪 Testing preprocessor loading...")
+        print(f"\n[TEST] Testing preprocessor loading...")
         loaded_preprocessor = load_preprocessor(output_file)
         if loaded_preprocessor is not None:
-            print(f"   ✅ Preprocessor loaded successfully!")
+            print(f"   [SUCCESS] Preprocessor loaded successfully!")
     else:
-        print(f"❌ Preprocessing failed!")
+        print(f"[ERROR] Preprocessing failed!")
 
 if __name__ == "__main__":
     main()

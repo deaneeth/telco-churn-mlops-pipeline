@@ -1,12 +1,78 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
+*.py[cod]
+*.pyc
+*$py.class
+
+# Virtual environments
 .venv/
 venv/
-*.pyc
+env/
+airflow_env/
+
+# Operating System
 .DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+
+# Data files
 data/raw/*
 !data/raw/.gitkeep
+
+# Model artifacts
 artifacts/
+
+# MLflow artifacts
 mlruns/
+
+# Build artifacts
+build/
+dist/
 *.egg-info/
-.env
+
+# Documentation
 /Mini-Project-1-Productionising-Telco-Churn-Prediction.pdf
+
+# Airflow home directory
+airflow_home/
+
+# Test results and validation artifacts
+airflow_dag_validation_results.json
+simulate_airflow_dag.py
+
+# CI/CD artifacts
+.github/
+*.log
+*.yaml
+*.yml
+!requirements.txt
+!setup.py
+!.github/workflows/
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage reports
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS specific
+desktop.ini
+/airflow_env/bin
