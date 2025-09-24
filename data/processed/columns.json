@@ -1,17 +1,6 @@
 {
-  "dataset_info": {
-    "total_rows": 7043,
-    "total_columns": 21,
-    "features_count": 19,
-    "target_column": "Churn"
-  },
-  "churn_distribution": {
-    "Yes": 1869,
-    "No": 5174,
-    "churn_rate_percent": 26.54
-  },
   "columns": {
-    "numeric": [
+    "numerical": [
       "SeniorCitizen",
       "tenure",
       "MonthlyCharges",
@@ -34,11 +23,46 @@
       "PaperlessBilling",
       "PaymentMethod"
     ],
-    "target": "Churn",
-    "identifier": "customerID"
+    "all_features": [
+      "SeniorCitizen",
+      "tenure",
+      "MonthlyCharges",
+      "TotalCharges",
+      "gender",
+      "Partner",
+      "Dependents",
+      "PhoneService",
+      "MultipleLines",
+      "InternetService",
+      "OnlineSecurity",
+      "OnlineBackup",
+      "DeviceProtection",
+      "TechSupport",
+      "StreamingTV",
+      "StreamingMovies",
+      "Contract",
+      "PaperlessBilling",
+      "PaymentMethod"
+    ],
+    "target": "Churn"
   },
-  "data_quality": {
-    "total_charges_na_count": 11,
-    "total_charges_converted": true
+  "metadata": {
+    "total_features": 19,
+    "numerical_count": 4,
+    "categorical_count": 15,
+    "dataset_shape": [
+      7043,
+      20
+    ],
+    "preprocessing_steps": {
+      "numerical": [
+        "median_imputation",
+        "standard_scaling"
+      ],
+      "categorical": [
+        "constant_imputation",
+        "one_hot_encoding"
+      ]
+    }
   }
 }
