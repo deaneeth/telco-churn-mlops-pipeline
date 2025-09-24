@@ -21,9 +21,6 @@ Thumbs.db
 data/raw/*
 !data/raw/.gitkeep
 
-# Model artifacts
-artifacts/
-
 # MLflow artifacts
 mlruns/
 

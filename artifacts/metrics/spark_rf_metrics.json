@@ -1,0 +1,9 @@
+{
+  "roc_auc": 0.8380439490870322,
+  "pr_auc": 0.6614732362017381,
+  "train_count": 5698,
+  "test_count": 1345,
+  "model_saved_native": false,
+  "model_saved_components": true,
+  "note": "Model trained successfully with Windows compatibility"
+}

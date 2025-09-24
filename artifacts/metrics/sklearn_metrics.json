@@ -1,0 +1,57 @@
+{
+  "train_accuracy": 0.8606673766418176,
+  "test_accuracy": 0.8090844570617459,
+  "train_roc_auc": 0.9373283417948691,
+  "test_roc_auc": 0.8410137177400604,
+  "model_params": {
+    "n_estimators": 100,
+    "max_depth": 10,
+    "min_samples_split": 5,
+    "min_samples_leaf": 2
+  },
+  "feature_count": 19,
+  "train_size": 5634,
+  "test_size": 1409,
+  "top_10_features": [
+    {
+      "feature": "tenure",
+      "importance": 0.13703817533531842
+    },
+    {
+      "feature": "TotalCharges",
+      "importance": 0.12938086918002067
+    },
+    {
+      "feature": "Contract_Month-to-month",
+      "importance": 0.09453294989116903
+    },
+    {
+      "feature": "MonthlyCharges",
+      "importance": 0.08175952917941945
+    },
+    {
+      "feature": "InternetService_Fiber optic",
+      "importance": 0.057179134769836694
+    },
+    {
+      "feature": "OnlineSecurity_No",
+      "importance": 0.054413362159061014
+    },
+    {
+      "feature": "PaymentMethod_Electronic check",
+      "importance": 0.04701340958663605
+    },
+    {
+      "feature": "TechSupport_No",
+      "importance": 0.0423550301494135
+    },
+    {
+      "feature": "Contract_Two year",
+      "importance": 0.02805751119190159
+    },
+    {
+      "feature": "OnlineBackup_No",
+      "importance": 0.02099818623455917
+    }
+  ]
+}

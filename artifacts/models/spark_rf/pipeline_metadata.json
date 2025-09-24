@@ -1,0 +1,53 @@
+{
+  "categorical_cols": [
+    "gender",
+    "Partner",
+    "Dependents",
+    "PhoneService",
+    "MultipleLines",
+    "InternetService",
+    "OnlineSecurity",
+    "OnlineBackup",
+    "DeviceProtection",
+    "TechSupport",
+    "StreamingTV",
+    "StreamingMovies",
+    "Contract",
+    "PaperlessBilling",
+    "PaymentMethod"
+  ],
+  "numeric_cols": [
+    "SeniorCitizen",
+    "tenure",
+    "MonthlyCharges",
+    "TotalCharges"
+  ],
+  "feature_cols": [
+    "SeniorCitizen",
+    "tenure",
+    "MonthlyCharges",
+    "TotalCharges",
+    "gender_encoded",
+    "Partner_encoded",
+    "Dependents_encoded",
+    "PhoneService_encoded",
+    "MultipleLines_encoded",
+    "InternetService_encoded",
+    "OnlineSecurity_encoded",
+    "OnlineBackup_encoded",
+    "DeviceProtection_encoded",
+    "TechSupport_encoded",
+    "StreamingTV_encoded",
+    "StreamingMovies_encoded",
+    "Contract_encoded",
+    "PaperlessBilling_encoded",
+    "PaymentMethod_encoded"
+  ],
+  "model_type": "RandomForestClassifier",
+  "num_trees": 20,
+  "max_depth": 5,
+  "roc_auc": 0.8380439490870322,
+  "pr_auc": 0.6614732362017381,
+  "train_count": 5698,
+  "test_count": 1345
+}
