@@ -9,12 +9,12 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 setup(
     name="telco-churn-prediction",
     version="0.1.0",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="Dean Hettiarachchi",
+    author_email="dnhettiarachchi.h05@gmail.com",
     description="Telco Customer Churn Prediction ML Project",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/telco-churn-prediction",
+    url="https://github.com/deaneeth/telco-churn-prediction",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
