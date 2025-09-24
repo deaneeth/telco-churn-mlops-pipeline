@@ -4,7 +4,7 @@ import json
 import joblib
 from pathlib import Path
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score, roc_auc_score, classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
@@ -46,7 +46,7 @@ def load_and_prepare_data(data_path, columns_path):
             print(f"   ⚠️  Found {na_count} non-numeric TotalCharges values (converted to NaN)")
         
         # Get feature columns and target
-        numeric_cols = metadata['columns']['numeric']
+        numeric_cols = metadata['columns']['numerical']
         categorical_cols = metadata['columns']['categorical']
         feature_columns = numeric_cols + categorical_cols
         target_column = metadata['columns']['target']
@@ -75,64 +75,79 @@ def load_and_prepare_data(data_path, columns_path):
         print(f"❌ ERROR: Failed to load and prepare data - {e}")
         return None, None, None, None, None
 
-def load_preprocessor(preprocessor_path):
+def create_fresh_preprocessor(X, numeric_cols, categorical_cols):
     """
-    Load the fitted preprocessor from disk.
+    Create a fresh preprocessor for the data to avoid sklearn version compatibility issues.
     
     Args:
-        preprocessor_path (str): Path to the saved preprocessor
+        X: Training data
+        numeric_cols: List of numeric column names  
+        categorical_cols: List of categorical column names
     
     Returns:
         ColumnTransformer: Fitted preprocessor
     """
     try:
-        print(f"📦 Loading preprocessor from {preprocessor_path}")
+        from sklearn.compose import ColumnTransformer
+        from sklearn.preprocessing import StandardScaler, OneHotEncoder
+        from sklearn.impute import SimpleImputer
         
-        if not Path(preprocessor_path).exists():
-            raise FileNotFoundError(f"Preprocessor not found: {preprocessor_path}")
+        print(f"🔧 Creating fresh preprocessor...")
         
-        preprocessor = joblib.load(preprocessor_path)
-        print(f"✅ Preprocessor loaded successfully")
+        # Create preprocessing pipelines
+        numeric_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='median')),
+            ('scaler', StandardScaler())
+        ])
         
+        categorical_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+            ('onehot', OneHotEncoder(handle_unknown='ignore', drop='first'))
+        ])
+        
+        # Combine preprocessing steps
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, numeric_cols),
+                ('cat', categorical_transformer, categorical_cols)
+            ]
+        )
+        
+        # Fit the preprocessor
+        preprocessor.fit(X)
+        print(f"   ✅ Preprocessor created and fitted successfully")
         return preprocessor
         
     except Exception as e:
-        print(f"❌ ERROR: Failed to load preprocessor - {e}")
+        print(f"❌ ERROR: Failed to create preprocessor - {e}")
         return None
 
-def build_ml_pipeline(preprocessor, random_state=42, n_estimators=100, max_depth=10):
+def build_ml_pipeline(preprocessor, **model_params):
     """
     Build the complete ML pipeline.
     
     Args:
         preprocessor: Fitted ColumnTransformer for preprocessing
-        random_state (int): Random state for reproducibility
-        n_estimators (int): Number of trees in the forest
-        max_depth (int): Maximum depth of the trees
+        **model_params: Model parameters for GradientBoosting
     
     Returns:
         Pipeline: Complete ML pipeline
     """
     print(f"🔧 Building ML pipeline...")
     
-    # Create RandomForest classifier
-    rf_classifier = RandomForestClassifier(
-        n_estimators=n_estimators,
-        random_state=random_state,
-        max_depth=max_depth,
-        min_samples_split=5,
-        min_samples_leaf=2,
-        n_jobs=-1
-    )
+    # Create GradientBoosting classifier with provided parameters
+    gb_classifier = GradientBoostingClassifier(**model_params)
+    
+    print(f"   Model: GradientBoostingClassifier")
+    print(f"   Parameters: {model_params}")
     
     # Create pipeline
     pipeline = Pipeline([
         ('preprocessor', preprocessor),
-        ('classifier', rf_classifier)
+        ('classifier', gb_classifier)
     ])
     
-    print(f"   ✅ Pipeline created with RandomForestClassifier")
-    print(f"   Parameters: n_estimators={n_estimators}, max_depth={max_depth}, random_state={random_state}")
+    print(f"   ✅ Pipeline created with GradientBoostingClassifier")
     
     return pipeline
 
@@ -175,7 +190,7 @@ def train_and_evaluate_with_mlflow(pipeline, X_train, X_test, y_train, y_test, m
         
         # Log parameters to MLflow
         print(f"📝 Logging parameters to MLflow...")
-        mlflow.log_param("model_type", "RandomForestClassifier")
+        mlflow.log_param("model_type", "GradientBoostingClassifier")
         mlflow.log_param("n_estimators", model_params["n_estimators"])
         mlflow.log_param("max_depth", model_params["max_depth"])
         mlflow.log_param("min_samples_split", model_params["min_samples_split"])
@@ -318,6 +333,10 @@ def main():
         if X is None:
             return
         
+        # Load column metadata for preprocessor creation
+        with open(columns_path, 'r') as f:
+            metadata = json.load(f)
+        
         # Split data
         print(f"✂️  Splitting data (stratified by {target_column})...")
         X_train, X_test, y_train, y_test = train_test_split(
@@ -338,27 +357,26 @@ def main():
         mlflow.log_metric("train_churn_rate", train_churn_rate)
         mlflow.log_metric("test_churn_rate", test_churn_rate)
         
-        # Load preprocessor
-        preprocessor = load_preprocessor(preprocessor_path)
+        # Create fresh preprocessor to avoid sklearn version compatibility issues
+        numeric_cols = metadata['columns']['numerical'] 
+        categorical_cols = metadata['columns']['categorical']
+        preprocessor = create_fresh_preprocessor(X_train, numeric_cols, categorical_cols)
         if preprocessor is None:
             return
         
-        # Model parameters
+        # Model parameters - optimized GradientBoosting hyperparameters
         model_params = {
             "n_estimators": 100,
-            "max_depth": 10,
-            "min_samples_split": 5,
-            "min_samples_leaf": 2,
+            "learning_rate": 0.05,
+            "max_depth": 3,
+            "min_samples_split": 10,
+            "min_samples_leaf": 1,
+            "subsample": 0.8,
             "random_state": 42
         }
         
         # Build pipeline
-        pipeline = build_ml_pipeline(
-            preprocessor, 
-            random_state=model_params["random_state"],
-            n_estimators=model_params["n_estimators"],
-            max_depth=model_params["max_depth"]
-        )
+        pipeline = build_ml_pipeline(preprocessor, **model_params)
         
         # Train and evaluate with MLflow tracking
         trained_pipeline, metrics = train_and_evaluate_with_mlflow(

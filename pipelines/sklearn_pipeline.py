@@ -97,7 +97,7 @@ class TelcoChurnPipeline:
         self.preprocessor = preprocessor
         return preprocessor
     
-    def create_pipeline(self, model_type: str = 'random_forest') -> Pipeline:
+    def create_pipeline(self, model_type: str = 'gradient_boosting') -> Pipeline:
         """
         Create complete ML pipeline with preprocessing and model.
         
@@ -116,7 +116,12 @@ class TelcoChurnPipeline:
                 n_jobs=-1
             ),
             'gradient_boosting': GradientBoostingClassifier(
-                n_estimators=100, 
+                n_estimators=100,
+                learning_rate=0.05,
+                max_depth=3,
+                min_samples_split=10,
+                min_samples_leaf=1,
+                subsample=0.8,
                 random_state=42
             ),
             'svm': SVC(
@@ -507,13 +512,13 @@ if __name__ == "__main__":
     print("=" * 50)
     
     # Example with sample data path
-    data_path = "../data/raw/telco_customer_churn.csv"
+    data_path = "../data/raw/Telco-Customer-Churn.csv"
     
     try:
-        # Run pipeline with Random Forest
+        # Run pipeline with Gradient Boosting (default optimized model)
         pipeline = run_complete_pipeline(
             data_path=data_path,
-            model_type='random_forest',
+            model_type='gradient_boosting',
             tune_hyperparams=False
         )
         

@@ -4,7 +4,7 @@ import json
 import joblib
 from pathlib import Path
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score, roc_auc_score, classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
@@ -44,7 +44,7 @@ def load_and_prepare_data(data_path, columns_path):
             print(f"   ⚠️  Found {na_count} non-numeric TotalCharges values (converted to NaN)")
         
         # Get feature columns and target
-        numeric_cols = metadata['columns']['numeric']
+        numeric_cols = metadata['columns']['numerical']
         categorical_cols = metadata['columns']['categorical']
         feature_columns = numeric_cols + categorical_cols
         target_column = metadata['columns']['target']
@@ -68,28 +68,51 @@ def load_and_prepare_data(data_path, columns_path):
         print(f"❌ ERROR: Failed to load and prepare data - {e}")
         return None, None, None, None, None
 
-def load_preprocessor(preprocessor_path):
+def create_preprocessor(X, numeric_cols, categorical_cols):
     """
-    Load the fitted preprocessor.
+    Create and fit a fresh preprocessor for the data.
     
     Args:
-        preprocessor_path (str or Path): Path to the saved preprocessor
+        X: Training data
+        numeric_cols: List of numeric column names  
+        categorical_cols: List of categorical column names
     
     Returns:
-        ColumnTransformer: Loaded preprocessor
+        ColumnTransformer: Fitted preprocessor
     """
     try:
-        print(f"📂 Loading preprocessor from {preprocessor_path}")
+        from sklearn.compose import ColumnTransformer
+        from sklearn.preprocessing import StandardScaler, OneHotEncoder
+        from sklearn.impute import SimpleImputer
         
-        if not Path(preprocessor_path).exists():
-            raise FileNotFoundError(f"Preprocessor not found: {preprocessor_path}")
+        print(f"🔧 Creating fresh preprocessor...")
         
-        preprocessor = joblib.load(preprocessor_path)
-        print(f"   ✅ Preprocessor loaded successfully")
+        # Create preprocessing pipelines
+        numeric_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='median')),
+            ('scaler', StandardScaler())
+        ])
+        
+        categorical_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+            ('onehot', OneHotEncoder(handle_unknown='ignore', drop='first'))
+        ])
+        
+        # Combine preprocessing steps
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, numeric_cols),
+                ('cat', categorical_transformer, categorical_cols)
+            ]
+        )
+        
+        # Fit the preprocessor
+        preprocessor.fit(X)
+        print(f"   ✅ Preprocessor created and fitted successfully")
         return preprocessor
         
     except Exception as e:
-        print(f"❌ ERROR: Failed to load preprocessor - {e}")
+        print(f"❌ ERROR: Failed to create preprocessor - {e}")
         return None
 
 def build_ml_pipeline(preprocessor, random_state=42):
@@ -105,24 +128,25 @@ def build_ml_pipeline(preprocessor, random_state=42):
     """
     print(f"🔧 Building ML pipeline...")
     
-    # Create RandomForest classifier
-    rf_classifier = RandomForestClassifier(
+    # Create GradientBoosting classifier with optimized parameters from experiments
+    gb_classifier = GradientBoostingClassifier(
         n_estimators=100,
-        random_state=random_state,
-        max_depth=10,
-        min_samples_split=5,
-        min_samples_leaf=2,
-        n_jobs=-1
+        learning_rate=0.05,
+        max_depth=3,
+        min_samples_split=10,
+        min_samples_leaf=1,
+        subsample=0.8,
+        random_state=random_state
     )
     
     # Create pipeline
     pipeline = Pipeline([
         ('preprocessor', preprocessor),
-        ('classifier', rf_classifier)
+        ('classifier', gb_classifier)
     ])
     
-    print(f"   ✅ Pipeline created with RandomForestClassifier")
-    print(f"   Parameters: n_estimators=100, max_depth=10, random_state={random_state}")
+    print(f"   ✅ Pipeline created with GradientBoostingClassifier")
+    print(f"   Parameters: n_estimators=100, learning_rate=0.05, max_depth=3, random_state={random_state}")
     
     return pipeline
 
@@ -164,9 +188,11 @@ def train_and_evaluate(pipeline, X_train, X_test, y_train, y_test):
             'test_roc_auc': float(roc_auc_score(y_test, y_test_proba)),
             'model_params': {
                 'n_estimators': pipeline.named_steps['classifier'].n_estimators,
+                'learning_rate': pipeline.named_steps['classifier'].learning_rate,
                 'max_depth': pipeline.named_steps['classifier'].max_depth,
                 'min_samples_split': pipeline.named_steps['classifier'].min_samples_split,
-                'min_samples_leaf': pipeline.named_steps['classifier'].min_samples_leaf
+                'min_samples_leaf': pipeline.named_steps['classifier'].min_samples_leaf,
+                'subsample': pipeline.named_steps['classifier'].subsample
             },
             'feature_count': X_train.shape[1],
             'train_size': int(X_train.shape[0]),
@@ -278,8 +304,10 @@ def main():
     print(f"   Train set: {X_train.shape[0]} samples, churn rate: {train_churn_rate:.2f}%")
     print(f"   Test set:  {X_test.shape[0]} samples, churn rate: {test_churn_rate:.2f}%")
     
-    # Load preprocessor
-    preprocessor = load_preprocessor(preprocessor_path)
+    # Create fresh preprocessor (avoid sklearn version compatibility issues)
+    numeric_cols = ['SeniorCitizen', 'tenure', 'MonthlyCharges', 'TotalCharges']
+    categorical_cols = [col for col in feature_columns if col not in numeric_cols]
+    preprocessor = create_preprocessor(X_train, numeric_cols, categorical_cols)
     if preprocessor is None:
         return
     

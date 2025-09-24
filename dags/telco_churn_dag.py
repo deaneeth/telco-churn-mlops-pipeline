@@ -64,7 +64,7 @@ train_task = BashOperator(
     
     This task trains the machine learning model with MLflow tracking:
     - Loads processed training data
-    - Trains RandomForest classifier with hyperparameter tuning
+    - Trains GradientBoosting classifier with optimized hyperparameters
     - Logs metrics, parameters, and artifacts to MLflow
     - Saves trained model for inference
     
