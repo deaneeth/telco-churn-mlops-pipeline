@@ -12,14 +12,16 @@ from inference.predict import load_model, predict_from_dict
 app = Flask(__name__)
 
 # Load the model once when the app starts
-MODEL_PATH = "artifacts/models/sklearn_pipeline.joblib"
+# Use absolute path to ensure model is found regardless of working directory
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+MODEL_PATH = PROJECT_ROOT / "artifacts/models/sklearn_pipeline_mlflow.joblib"
 model = None
 
 def initialize_model():
     """Initialize the model when the app starts"""
     global model
     try:
-        model = load_model(MODEL_PATH)
+        model = load_model(str(MODEL_PATH))
         print("🚀 Flask app initialized with model loaded")
     except Exception as e:
         print(f"❌ Failed to load model on startup: {e}")

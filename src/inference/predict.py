@@ -71,7 +71,9 @@ def predict_from_dict(model, input_dict: Dict[str, Union[str, int, float]]) -> D
     """
     try:
         # Load feature metadata to know the expected feature order
-        feature_metadata_path = Path("artifacts/models/feature_names.json")
+        # Use absolute path relative to the project root
+        project_root = Path(__file__).parent.parent.parent
+        feature_metadata_path = project_root / "artifacts/models/feature_names.json"
         if not feature_metadata_path.exists():
             raise FileNotFoundError(f"Feature metadata not found: {feature_metadata_path}")
         
