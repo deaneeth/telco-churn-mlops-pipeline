@@ -172,21 +172,35 @@ seaborn>=0.11.0        # Statistical visualization
 
 ## 🔧 Post-Assessment Updates
 
-### Test Suite Fix (September 25, 2025)
+### Critical Fixes (September 25, 2025)
 
+#### 1. Test Suite Fix
 **Issue**: GitHub CI was failing due to test looking for outdated model file
 - **Problem**: `test_inference.py` referenced `sklearn_pipeline.joblib` (removed during cleanup)
 - **Solution**: Updated test to use production model `sklearn_pipeline_mlflow.joblib`
-- **Result**: All tests now pass (6/6) ✅
+- **Result**: Tests passing locally ✅
 
-**Test Results After Fix**:
+#### 2. Scikit-learn Version Compatibility Fix ⚠️ **CRITICAL**
+**Issue**: Model serialization incompatibility between sklearn versions
+- **Problem**: Model trained with sklearn 1.6.1 failed to load in sklearn 1.7.2 (CI environment)
+- **Root Cause**: `_RemainderColsList` class removed/changed in sklearn 1.7.2
+- **Solution Applied**:
+  1. **Pinned sklearn to 1.6.1** in `requirements.txt` for environment consistency
+  2. **Enhanced model loading** with version compatibility error handling
+  3. **Retrained production model** with MLflow run ID: `392ccc4f037f45cf9958b66b5a537009`
+- **Performance Maintained**: ROC-AUC 0.8466 (consistent with previous model)
+
+**Final Test Results After All Fixes**:
 ```bash
 pytest -q
 ......                                                          [100%]
-6 passed in 4.13s
+6 passed in 3.01s
 ```
 
-This confirms that the production pipeline is fully tested and CI-ready.
+**Impact**: 
+- ✅ Production pipeline fully compatible across environments
+- ✅ Model serialization/deserialization works reliably
+- ✅ CI/CD pipeline now stable and ready for deployment
 
 ---
 

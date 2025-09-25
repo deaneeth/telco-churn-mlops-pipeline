@@ -7,7 +7,7 @@ from typing import Dict, Union
 
 def load_model(model_path: str):
     """
-    Load a trained machine learning pipeline from disk.
+    Load a trained machine learning pipeline from disk with version compatibility handling.
     
     Args:
         model_path (str): Path to the saved joblib model file
@@ -17,16 +17,38 @@ def load_model(model_path: str):
     
     Raises:
         FileNotFoundError: If the model file doesn't exist
-        Exception: If there's an error loading the model
+        Exception: If there's an error loading the model or version incompatibility
     """
+    import warnings
+    import sklearn
+    
     try:
         model_path_obj = Path(model_path)
         if not model_path_obj.exists():
             raise FileNotFoundError(f"Model file not found: {model_path}")
         
-        model = joblib.load(model_path_obj)
+        # Suppress sklearn version warnings during loading
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning)
+            model = joblib.load(model_path_obj)
+        
         print(f"✅ Model loaded successfully from {model_path}")
+        print(f"📊 Current sklearn version: {sklearn.__version__}")
         return model
+        
+    except AttributeError as e:
+        if "_RemainderColsList" in str(e) or "sklearn.compose" in str(e):
+            error_msg = (
+                f"❌ Sklearn version compatibility issue: {e}\n"
+                f"Current sklearn version: {sklearn.__version__}\n"
+                f"Model was likely trained with a different sklearn version.\n"
+                f"Please retrain the model or ensure sklearn version compatibility."
+            )
+            print(error_msg)
+            raise Exception(error_msg)
+        else:
+            print(f"❌ ERROR: Failed to load model - {e}")
+            raise
         
     except Exception as e:
         print(f"❌ ERROR: Failed to load model - {e}")

@@ -39,7 +39,7 @@ def load_processed_data(data_path: str = "data/processed/sample.csv") -> pd.Data
         logger.error(f"❌ Failed to load data: {e}")
         raise
 
-def load_trained_model(model_path: str = "artifacts/models/sklearn_pipeline.joblib") -> object:
+def load_trained_model(model_path: str = "artifacts/models/sklearn_pipeline_mlflow.joblib") -> object:
     """
     Load the trained ML model.
     
