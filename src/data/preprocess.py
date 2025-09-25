@@ -74,7 +74,7 @@ def fit_save_preprocessor(input_csv, out_path):
         with open(columns_path, 'r') as f:
             metadata = json.load(f)
         
-        numeric_cols = metadata['columns']['numeric']
+        numeric_cols = metadata['columns']['numerical']
         categorical_cols = metadata['columns']['categorical']
         
         print(f"[INFO] Column Information:")

@@ -1,13 +1,20 @@
-pandas
-numpy
-scikit-learn
-joblib
-mlflow
-pytest
-flask
-pyspark
-apache-airflow
-matplotlib
-python-dotenv
-openpyxl
-seaborn
+# Core production dependencies
+pandas>=1.5.0
+numpy>=1.21.0
+scikit-learn>=1.3.0
+joblib>=1.2.0
+mlflow>=2.0.0
+
+# Orchestration
+apache-airflow>=2.5.0
+
+# Development and testing
+pytest>=7.0.0
+matplotlib>=3.5.0
+seaborn>=0.11.0
+
+# Optional dependencies (not used in current production pipeline)
+# flask
+# pyspark
+# python-dotenv
+# openpyxl

@@ -512,7 +512,7 @@ if __name__ == "__main__":
     print("=" * 50)
     
     # Example with sample data path
-    data_path = "../data/raw/Telco-Customer-Churn.csv"
+    data_path = "data/raw/Telco-Customer-Churn.csv"
     
     try:
         # Run pipeline with Gradient Boosting (default optimized model)
