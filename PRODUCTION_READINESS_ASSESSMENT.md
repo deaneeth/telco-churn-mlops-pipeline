@@ -32,7 +32,7 @@ The telco churn prediction ML pipeline has undergone comprehensive validation an
 | 3 | Data Loading | Test `src/data/load_data.py` and `preprocess.py` | ✅ PASS | Successful processing |
 | 4 | Model Training | Test `src/models/train.py` with GradientBoosting | ✅ PASS | ROC-AUC: 0.8466 |
 | 5 | Model Evaluation | Test `src/models/evaluate.py` utilities | ✅ PASS | All metrics calculated correctly |
-| 6 | Inference Pipeline | Test `src/inference/predict.py` | ✅ PASS | Batch predictions working |
+| 6 | Inference Pipeline | Test `src/inference/predict.py` + unit tests | ✅ PASS | Batch predictions + 6/6 tests pass |
 | 7 | Sklearn Pipeline | Test `pipelines/sklearn_pipeline.py` | ✅ PASS | ROC-AUC: 0.8466 |
 | 8 | Spark Pipeline | Validate Spark pipeline necessity | ✅ PASS | Identified as non-production |
 | 9 | MLflow Integration | Test `src/models/train_mlflow.py` | ✅ PASS | Experiment tracking active |
@@ -166,6 +166,27 @@ seaborn>=0.11.0        # Statistical visualization
 - ✅ **End-to-End Testing**: Complete workflow validated
 - ✅ **Code Quality**: All production scripts tested and working
 - ✅ **Documentation**: Comprehensive assessment documented
+- ✅ **CI/CD Tests**: All unit tests passing (6/6 tests)
+
+---
+
+## 🔧 Post-Assessment Updates
+
+### Test Suite Fix (September 25, 2025)
+
+**Issue**: GitHub CI was failing due to test looking for outdated model file
+- **Problem**: `test_inference.py` referenced `sklearn_pipeline.joblib` (removed during cleanup)
+- **Solution**: Updated test to use production model `sklearn_pipeline_mlflow.joblib`
+- **Result**: All tests now pass (6/6) ✅
+
+**Test Results After Fix**:
+```bash
+pytest -q
+......                                                          [100%]
+6 passed in 4.13s
+```
+
+This confirms that the production pipeline is fully tested and CI-ready.
 
 ---
 

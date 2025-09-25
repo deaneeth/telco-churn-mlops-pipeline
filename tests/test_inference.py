@@ -15,7 +15,7 @@ class TestInference(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Set up test fixtures before running tests"""
-        cls.model_path = "artifacts/models/sklearn_pipeline.joblib"
+        cls.model_path = "artifacts/models/sklearn_pipeline_mlflow.joblib"
         cls.feature_metadata_path = "artifacts/models/feature_names.json"
         
         # Load the model once for all tests
