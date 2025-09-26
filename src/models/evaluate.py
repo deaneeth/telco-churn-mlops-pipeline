@@ -48,9 +48,19 @@ class ModelEvaluator:
         y_pred = model.predict(X_test)
         y_pred_proba = model.predict_proba(X_test)[:, 1] if hasattr(model, 'predict_proba') else None
         
-        # Calculate metrics
+        # Calculate comprehensive metrics using the standalone function
+        metrics = calculate_classification_metrics(y_test, y_pred, y_pred_proba)
+        
+        # Create evaluation result in expected format
         evaluation = {
             'model_name': model_name,
+            'accuracy': metrics['accuracy'],
+            'precision': metrics['precision'], 
+            'recall': metrics['recall'],
+            'f1_score': metrics['f1_score'],
+            'roc_auc': metrics['roc_auc'],
+            'predictions': y_pred,
+            'prediction_probabilities': y_pred_proba,
             'y_true': y_test,
             'y_pred': y_pred,
             'y_pred_proba': y_pred_proba,
@@ -349,11 +359,197 @@ def calculate_business_metrics(y_true: np.ndarray, y_pred: np.ndarray,
     return business_metrics
 
 
+# Standalone functions expected by test modules
+def calculate_classification_metrics(y_true, y_pred, y_pred_proba=None):
+    """
+    Calculate comprehensive classification metrics.
+    
+    Args:
+        y_true: True labels
+        y_pred: Predicted labels
+        y_pred_proba: Predicted probabilities (optional)
+        
+    Returns:
+        dict: Classification metrics
+    """
+    from sklearn.metrics import (
+        accuracy_score, precision_score, recall_score, f1_score,
+        roc_auc_score, average_precision_score
+    )
+    
+    # Calculate basic metrics
+    metrics = {
+        'accuracy': accuracy_score(y_true, y_pred),
+        'precision': precision_score(y_true, y_pred, average='weighted', zero_division=0),
+        'recall': recall_score(y_true, y_pred, average='weighted', zero_division=0),
+        'f1_score': f1_score(y_true, y_pred, average='weighted', zero_division=0),
+    }
+    
+    # Calculate confusion matrix components for additional metrics
+    cm = confusion_matrix(y_true, y_pred)
+    if cm.shape == (2, 2):
+        tn, fp, fn, tp = cm.ravel()
+        # Specificity (True Negative Rate)  
+        metrics['specificity'] = tn / (tn + fp) if (tn + fp) > 0 else 0
+        # Negative Predictive Value
+        metrics['npv'] = tn / (tn + fn) if (tn + fn) > 0 else 0
+    else:
+        # Multi-class case - set defaults
+        metrics['specificity'] = 0
+        metrics['npv'] = 0
+    
+    # Add probability-based metrics if available
+    if y_pred_proba is not None:
+        metrics['roc_auc'] = roc_auc_score(y_true, y_pred_proba)
+        metrics['precision_recall_auc'] = average_precision_score(y_true, y_pred_proba)
+    else:
+        metrics['roc_auc'] = 0
+        metrics['precision_recall_auc'] = 0
+    
+    return metrics
+
+
+def generate_confusion_matrix_plot(y_true, y_pred, title="Confusion Matrix", figsize=(8, 6)):
+    """
+    Generate confusion matrix plot.
+    
+    Args:
+        y_true: True labels
+        y_pred: Predicted labels
+        title: Plot title
+        figsize: Figure size
+        
+    Returns:
+        matplotlib.figure.Figure: The confusion matrix plot
+    """
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    
+    cm = confusion_matrix(y_true, y_pred)
+    
+    fig, ax = plt.subplots(figsize=figsize)
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+               xticklabels=['No Churn', 'Churn'],
+               yticklabels=['No Churn', 'Churn'], ax=ax)
+    ax.set_title(title)
+    ax.set_xlabel('Predicted')
+    ax.set_ylabel('Actual')
+    
+    return fig
+
+
+def generate_roc_curve_plot(y_true, y_pred_proba, title="ROC Curve", figsize=(8, 6)):
+    """
+    Generate ROC curve plot.
+    
+    Args:
+        y_true: True labels
+        y_pred_proba: Predicted probabilities
+        title: Plot title
+        figsize: Figure size
+        
+    Returns:
+        matplotlib.figure.Figure: The ROC curve plot
+    """
+    import matplotlib.pyplot as plt
+    from sklearn.metrics import roc_curve, auc
+    
+    fpr, tpr, _ = roc_curve(y_true, y_pred_proba)
+    roc_auc = auc(fpr, tpr)
+    
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {roc_auc:.2f})')
+    ax.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    ax.set_xlim([0.0, 1.0])
+    ax.set_ylim([0.0, 1.05])
+    ax.set_xlabel('False Positive Rate')
+    ax.set_ylabel('True Positive Rate')
+    ax.set_title(title)
+    ax.legend(loc="lower right")
+    
+    return fig
+
+
+def generate_feature_importance_plot(feature_importances, feature_names, title="Feature Importance", figsize=(10, 8)):
+    """
+    Generate feature importance plot.
+    
+    Args:
+        feature_importances: Feature importance values
+        feature_names: Feature names
+        title: Plot title  
+        figsize: Figure size
+        
+    Returns:
+        matplotlib.figure.Figure: The feature importance plot
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+    
+    # Sort features by importance
+    indices = np.argsort(feature_importances)[::-1][:20]  # Top 20
+    
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.bar(range(len(indices)), feature_importances[indices])
+    ax.set_title(title)
+    ax.set_xlabel('Features')
+    ax.set_ylabel('Importance')
+    ax.set_xticks(range(len(indices)))
+    ax.set_xticklabels([feature_names[i] for i in indices], rotation=45, ha='right')
+    
+    return fig
+
+
+def compare_models(models, X_test, y_test, metric='accuracy'):
+    """
+    Compare multiple models based on a specific metric.
+    
+    Args:
+        models: Dictionary of model instances
+        X_test: Test features 
+        y_test: Test labels
+        metric: Metric to compare on
+        
+    Returns:
+        dict: Comparison results with model evaluations
+    """
+    results = {}
+    
+    for model_name, model in models.items():
+        try:
+            # Make predictions
+            y_pred = model.predict(X_test)
+            y_pred_proba = model.predict_proba(X_test)[:, 1] if hasattr(model, 'predict_proba') else None
+            
+            # Calculate metrics
+            metrics = calculate_classification_metrics(y_test, y_pred, y_pred_proba)
+            
+            results[model_name] = {
+                'metrics': metrics,
+                'y_pred': y_pred,
+                'y_pred_proba': y_pred_proba
+            }
+            
+        except Exception as e:
+            logger.warning(f"Failed to evaluate model {model_name}: {e}")
+            results[model_name] = {'error': str(e)}
+    
+    return results
+
+
+def main():
+    """Main function for standalone execution."""
+    print("Model evaluation module - standalone functions available:")
+    functions = [
+        'calculate_classification_metrics',
+        'generate_confusion_matrix_plot', 
+        'generate_roc_curve_plot',
+        'generate_feature_importance_plot',
+        'compare_models'
+    ]
+    for func in functions:
+        print(f"  - {func}")
+
+
 if __name__ == "__main__":
-    # Example usage
-    print("Model evaluation module loaded successfully!")
-    evaluator = ModelEvaluator()
-    print("Available methods:")
-    methods = [method for method in dir(evaluator) if not method.startswith('_')]
-    for method in methods:
-        print(f"  - {method}")
+    main()

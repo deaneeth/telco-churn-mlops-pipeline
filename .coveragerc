@@ -1,0 +1,125 @@
+# Coverage configuration for pytest-cov
+# This configuration controls how code coverage is measured and reported
+
+[run]
+# Source code to analyze for coverage
+source = src
+
+# Omit these files from coverage analysis
+omit = 
+    */tests/*
+    */test_*.py
+    */__init__.py
+    */venv/*
+    */env/*
+    */.venv/*
+    setup.py
+    */site-packages/*
+    */build/*
+    */dist/*
+    */htmlcov/*
+    */.pytest_cache/*
+    */mlruns/*
+    */artifacts/*
+
+# Include patterns (use with caution)
+include = 
+    src/*
+    
+# Branch coverage (tracks both line and branch coverage)
+branch = True
+
+# Coverage data file
+data_file = .coverage
+
+# Parallel processing support
+parallel = False
+
+# Measurement context (for advanced coverage tracking)
+# context = test
+
+[report]
+# Minimum coverage percentage to pass
+# (also set in pytest.ini with --cov-fail-under)
+fail_under = 85
+
+# Show missing lines in terminal report
+show_missing = True
+
+# Skip covered files in terminal report
+skip_covered = False
+
+# Skip empty files
+skip_empty = True
+
+# Precision for coverage percentages
+precision = 1
+
+# Sort report by coverage percentage
+sort = Cover
+
+# Exclude lines from coverage (regex patterns)
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+    
+    # Don't complain about missing debug-only code:
+    def __repr__
+    if self\.debug
+    
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+    
+    # Don't complain if non-runnable code isn't run:
+    if 0:
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    
+    # Don't complain about abstract methods
+    @(abc\.)?abstractmethod
+    
+    # Don't complain about platform specific code
+    pragma: no cover
+    
+    # Don't complain about import errors in try/except blocks
+    except ImportError
+    except ModuleNotFoundError
+
+# Partial branch exclusions
+partial_branches =
+    # Don't complain if tests don't hit defensive assertion code:
+    pragma: no branch
+    
+    # Don't complain about version checking code
+    if sys.version_info
+
+[html]
+# HTML report directory
+directory = htmlcov
+
+# Title for HTML report
+title = Telco Churn Prediction Coverage Report
+
+# Show contexts in HTML report (requires measurement context)
+show_contexts = True
+
+# Skip files with 100% coverage in HTML report
+skip_covered = False
+
+# Skip empty files in HTML report  
+skip_empty = True
+
+[xml]
+# XML report output file
+output = coverage.xml
+
+[json]
+# JSON report output file (if needed)
+output = coverage.json
+
+# Pretty print JSON report
+pretty_print = True
+
+# Show contexts in JSON report
+show_contexts = True

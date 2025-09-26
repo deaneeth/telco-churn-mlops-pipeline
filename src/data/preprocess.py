@@ -39,13 +39,14 @@ def build_preprocessor(numeric_cols, categorical_cols):
     
     return preprocessor
 
-def fit_save_preprocessor(input_csv, out_path):
+def fit_save_preprocessor(input_csv, out_path, columns_path=None):
     """
     Load data, fit preprocessor, and save it to specified path.
     
     Args:
         input_csv (str or Path): Path to input CSV file
         out_path (str or Path): Path to save the fitted preprocessor
+        columns_path (str or Path, optional): Path to columns metadata JSON file
     
     Returns:
         tuple: (fitted_preprocessor, feature_names, X_transformed)
@@ -54,7 +55,10 @@ def fit_save_preprocessor(input_csv, out_path):
         # Convert paths to Path objects
         input_csv = Path(input_csv)
         out_path = Path(out_path)
-        columns_path = Path("data/processed/columns.json")
+        if columns_path is None:
+            columns_path = Path("data/processed/columns.json")
+        else:
+            columns_path = Path(columns_path)
         
         print(f"[INFO] Loading data from {input_csv}")
         
@@ -221,6 +225,54 @@ def main():
             print(f"   [SUCCESS] Preprocessor loaded successfully!")
     else:
         print(f"[ERROR] Preprocessing failed!")
+
+def load_and_prepare_data(data_path, columns_path=None, target_col='Churn'):
+    """
+    Load and prepare data for model training or testing.
+    
+    Args:
+        data_path (str or Path): Path to the data file (CSV)
+        columns_path (str or Path, optional): Path to columns configuration (not used in this implementation)
+        target_col (str): Name of the target column
+    
+    Returns:
+        tuple: (X, y, feature_cols, target_col, le) where:
+            - X is features DataFrame
+            - y is target Series  
+            - feature_cols is list of feature column names
+            - target_col is the target column name
+            - le is label encoder (None in this implementation)
+    """
+    try:
+        # Load data
+        df = pd.read_csv(data_path)
+        
+        # Basic data cleaning
+        # Remove customerID if it exists (not a feature)
+        if 'customerID' in df.columns:
+            df = df.drop('customerID', axis=1)
+        
+        # Convert target to numeric if needed
+        if target_col in df.columns:
+            if df[target_col].dtype == 'object':
+                df[target_col] = df[target_col].map({'Yes': 1, 'No': 0})
+            y = df[target_col]
+            X = df.drop(target_col, axis=1)
+        else:
+            # If no target column, return all as features
+            X = df
+            y = None
+        
+        # Get feature names
+        feature_cols = X.columns.tolist()
+        
+        # Return in expected format: (X, y, feature_cols, target_col, le)
+        return X, y, feature_cols, target_col, None  # le (label encoder) is None
+        
+    except Exception as e:
+        print(f"Error in load_and_prepare_data: {e}")
+        return None, None, None, None, None
+
 
 if __name__ == "__main__":
     main()

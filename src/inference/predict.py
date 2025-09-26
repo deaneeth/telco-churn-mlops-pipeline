@@ -3,7 +3,7 @@ import numpy as np
 import joblib
 import json
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, Union, List, Optional
 
 def load_model(model_path: str):
     """
@@ -117,3 +117,84 @@ def predict_from_dict(model, input_dict: Dict[str, Union[str, int, float]]) -> D
     except Exception as e:
         print(f"❌ ERROR: Prediction failed - {e}")
         raise
+
+
+class ChurnPredictor:
+    """
+    ChurnPredictor class for API integration and testing.
+    Provides a class-based interface for churn prediction models.
+    """
+    
+    def __init__(self, model_path: Optional[str] = None):
+        """
+        Initialize the ChurnPredictor.
+        
+        Args:
+            model_path (str, optional): Path to the trained model file
+        """
+        self.model = None
+        self.model_path = model_path
+        if model_path:
+            self.load_model(model_path)
+    
+    def load_model(self, model_path: str):
+        """
+        Load a trained model.
+        
+        Args:
+            model_path (str): Path to the trained model file
+        """
+        self.model = load_model(model_path)
+        self.model_path = model_path
+    
+    def predict(self, input_data: Union[Dict, pd.DataFrame]) -> Dict[str, Union[int, float]]:
+        """
+        Make a prediction using the loaded model.
+        
+        Args:
+            input_data: Input data as dictionary or DataFrame
+            
+        Returns:
+            Dict containing prediction and probability
+            
+        Raises:
+            ValueError: If no model is loaded
+        """
+        if self.model is None:
+            raise ValueError("No model loaded. Call load_model() first.")
+        
+        if isinstance(input_data, dict):
+            return predict_from_dict(self.model, input_data)
+        elif isinstance(input_data, pd.DataFrame):
+            # Convert DataFrame to dict format for compatibility
+            if len(input_data) > 1:
+                raise ValueError("DataFrame should contain exactly one row for single prediction")
+            input_dict = input_data.iloc[0].to_dict()
+            return predict_from_dict(self.model, input_dict)
+        else:
+            raise ValueError("Input data must be a dictionary or pandas DataFrame")
+    
+    def predict_batch(self, input_data: pd.DataFrame) -> List[Dict[str, Union[int, float]]]:
+        """
+        Make batch predictions.
+        
+        Args:
+            input_data: DataFrame with multiple rows for prediction
+            
+        Returns:
+            List of prediction dictionaries
+        """
+        if self.model is None:
+            raise ValueError("No model loaded. Call load_model() first.")
+        
+        results = []
+        for _, row in input_data.iterrows():
+            input_dict = row.to_dict()
+            result = predict_from_dict(self.model, input_dict)
+            results.append(result)
+        
+        return results
+    
+    def is_loaded(self) -> bool:
+        """Check if a model is loaded."""
+        return self.model is not None

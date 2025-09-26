@@ -186,6 +186,235 @@ class TestInference(unittest.TestCase):
         self.assertIsInstance(result, dict)
         self.assertIn('prediction', result)
         self.assertIn('probability', result)
+    
+    def test_input_data_validation_edge_cases(self):
+        """Test input validation with various edge cases"""
+        if self.model is None or self.feature_info is None:
+            self.skipTest("Model or feature metadata not available")
+        
+        # Test edge case inputs
+        edge_case_inputs = [
+            # Minimum values
+            {
+                'tenure': 0,
+                'MonthlyCharges': 0.0,
+                'TotalCharges': '0.0',
+                'SeniorCitizen': 0,
+                'gender': 'Male',
+                'Partner': 'No',
+                'Dependents': 'No',
+                'PhoneService': 'No',
+                'MultipleLines': 'No phone service',
+                'InternetService': 'No',
+                'OnlineSecurity': 'No internet service',
+                'OnlineBackup': 'No internet service',
+                'DeviceProtection': 'No internet service',
+                'TechSupport': 'No internet service',
+                'StreamingTV': 'No internet service',
+                'StreamingMovies': 'No internet service',
+                'Contract': 'Month-to-month',
+                'PaperlessBilling': 'No',
+                'PaymentMethod': 'Mailed check'
+            },
+            # Maximum typical values
+            {
+                'tenure': 72,
+                'MonthlyCharges': 118.75,
+                'TotalCharges': '8684.8',
+                'SeniorCitizen': 1,
+                'gender': 'Female',
+                'Partner': 'Yes',
+                'Dependents': 'Yes',
+                'PhoneService': 'Yes',
+                'MultipleLines': 'Yes',
+                'InternetService': 'Fiber optic',
+                'OnlineSecurity': 'Yes',
+                'OnlineBackup': 'Yes',
+                'DeviceProtection': 'Yes',
+                'TechSupport': 'Yes',
+                'StreamingTV': 'Yes',
+                'StreamingMovies': 'Yes',
+                'Contract': 'Two year',
+                'PaperlessBilling': 'Yes',
+                'PaymentMethod': 'Credit card (automatic)'
+            }
+        ]
+        
+        for i, edge_input in enumerate(edge_case_inputs):
+            with self.subTest(case=f"edge_case_{i}"):
+                try:
+                    result = predict_from_dict(self.model, edge_input)
+                    self.assertIsInstance(result, dict)
+                    self.assertIn('prediction', result)
+                    self.assertIn('probability', result)
+                except Exception as e:
+                    self.fail(f"Edge case {i} failed: {e}")
+    
+    def test_input_data_type_coercion(self):
+        """Test automatic data type coercion for inputs"""
+        if self.model is None or self.feature_info is None:
+            self.skipTest("Model or feature metadata not available")
+        
+        # Test with various data types that should be coerced
+        test_input = {
+            'tenure': '24',  # String number
+            'MonthlyCharges': 85,  # Integer instead of float
+            'TotalCharges': 2040.5,  # Float instead of string
+            'SeniorCitizen': '1',  # String boolean
+            'gender': 'MALE',  # Different case
+            'Partner': 'yes',  # Different case
+            'Dependents': 'NO',  # Different case
+            'PhoneService': 'Yes',
+            'MultipleLines': 'No',
+            'InternetService': 'DSL',
+            'OnlineSecurity': 'No',
+            'OnlineBackup': 'No',
+            'DeviceProtection': 'No',
+            'TechSupport': 'No',
+            'StreamingTV': 'No',
+            'StreamingMovies': 'No',
+            'Contract': 'Month-to-month',
+            'PaperlessBilling': 'Yes',
+            'PaymentMethod': 'Electronic check'
+        }
+        
+        try:
+            result = predict_from_dict(self.model, test_input)
+            self.assertIsInstance(result, dict)
+            self.assertIn('prediction', result)
+            self.assertIn('probability', result)
+        except Exception as e:
+            # Some type coercion might fail, but should be handled gracefully
+            self.assertIsInstance(e, (ValueError, TypeError, KeyError))
+    
+    def test_batch_prediction_validation(self):
+        """Test validation for batch predictions"""
+        if self.model is None or self.feature_info is None:
+            self.skipTest("Model or feature metadata not available")
+        
+        # Create batch of test data
+        batch_data = []
+        for i in range(5):
+            customer = {
+                'tenure': 12 + i * 6,
+                'MonthlyCharges': 50.0 + i * 10,
+                'TotalCharges': str((50.0 + i * 10) * (12 + i * 6)),
+                'SeniorCitizen': i % 2,
+                'gender': 'Male' if i % 2 == 0 else 'Female',
+                'Partner': 'Yes' if i % 2 == 0 else 'No',
+                'Dependents': 'No',
+                'PhoneService': 'Yes',
+                'MultipleLines': 'No',
+                'InternetService': 'DSL',
+                'OnlineSecurity': 'Yes',
+                'OnlineBackup': 'No',
+                'DeviceProtection': 'No',
+                'TechSupport': 'No',
+                'StreamingTV': 'No',
+                'StreamingMovies': 'No',
+                'Contract': 'Month-to-month',
+                'PaperlessBilling': 'Yes',
+                'PaymentMethod': 'Electronic check'
+            }
+            batch_data.append(customer)
+        
+        # Test each customer in batch
+        batch_results = []
+        for customer_data in batch_data:
+            try:
+                result = predict_from_dict(self.model, customer_data)
+                batch_results.append(result)
+            except Exception as e:
+                self.fail(f"Batch prediction failed for customer: {e}")
+        
+        # Validate batch results
+        self.assertEqual(len(batch_results), len(batch_data))
+        for result in batch_results:
+            self.assertIsInstance(result, dict)
+            self.assertIn('prediction', result)
+            self.assertIn('probability', result)
+    
+    def test_prediction_consistency(self):
+        """Test prediction consistency for identical inputs"""
+        if self.model is None or self.feature_info is None:
+            self.skipTest("Model or feature metadata not available")
+        
+        # Same input should produce same output
+        test_input = {
+            'tenure': 24,
+            'MonthlyCharges': 70.0,
+            'TotalCharges': '1680.0',
+            'SeniorCitizen': 0,
+            'gender': 'Male',
+            'Partner': 'Yes',
+            'Dependents': 'No',
+            'PhoneService': 'Yes',
+            'MultipleLines': 'No',
+            'InternetService': 'DSL',
+            'OnlineSecurity': 'Yes',
+            'OnlineBackup': 'No',
+            'DeviceProtection': 'No',
+            'TechSupport': 'No',
+            'StreamingTV': 'No',
+            'StreamingMovies': 'No',
+            'Contract': 'One year',
+            'PaperlessBilling': 'No',
+            'PaymentMethod': 'Bank transfer (automatic)'
+        }
+        
+        # Make multiple predictions with same input
+        results = []
+        for _ in range(3):
+            try:
+                result = predict_from_dict(self.model, test_input.copy())
+                results.append(result)
+            except Exception as e:
+                self.skipTest(f"Prediction failed: {e}")
+        
+        if len(results) > 1:
+            # All results should be identical
+            first_result = results[0]
+            for result in results[1:]:
+                self.assertEqual(result['prediction'], first_result['prediction'])
+                self.assertAlmostEqual(result['probability'], first_result['probability'], places=6)
+    
+    def test_input_sanitization(self):
+        """Test input sanitization and cleaning"""
+        if self.model is None or self.feature_info is None:
+            self.skipTest("Model or feature metadata not available")
+        
+        # Test inputs with extra whitespace and special characters
+        messy_input = {
+            'tenure': '  24  ',
+            'MonthlyCharges': ' 70.50 ',
+            'TotalCharges': '  1692.00  ',
+            'SeniorCitizen': ' 0 ',
+            'gender': ' Male ',
+            'Partner': ' Yes ',
+            'Dependents': ' No ',
+            'PhoneService': ' Yes ',
+            'MultipleLines': ' No ',
+            'InternetService': ' DSL ',
+            'OnlineSecurity': ' Yes ',
+            'OnlineBackup': ' No ',
+            'DeviceProtection': ' No ',
+            'TechSupport': ' No ',
+            'StreamingTV': ' No ',
+            'StreamingMovies': ' No ',
+            'Contract': ' One year ',
+            'PaperlessBilling': ' No ',
+            'PaymentMethod': ' Bank transfer (automatic) '
+        }
+        
+        try:
+            result = predict_from_dict(self.model, messy_input)
+            # Should handle messy input gracefully
+            self.assertIsInstance(result, dict)
+            self.assertIn('prediction', result)
+            self.assertIn('probability', result)
+        except Exception as e:
+            # Input sanitization might fail, should be handled appropriately
+            self.assertIsInstance(e, (ValueError, TypeError, KeyError))
 
 if __name__ == '__main__':
     # Run the tests

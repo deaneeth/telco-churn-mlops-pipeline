@@ -115,38 +115,45 @@ def create_preprocessor(X, numeric_cols, categorical_cols):
         print(f"❌ ERROR: Failed to create preprocessor - {e}")
         return None
 
-def build_ml_pipeline(preprocessor, random_state=42):
+def build_ml_pipeline(preprocessor, random_state=42, **kwargs):
     """
     Build the machine learning pipeline.
     
     Args:
         preprocessor: Fitted ColumnTransformer for preprocessing
         random_state (int): Random state for reproducibility
+        **kwargs: Additional parameters for the GradientBoostingClassifier
     
     Returns:
         Pipeline: Complete ML pipeline
     """
     print(f"🔧 Building ML pipeline...")
     
-    # Create GradientBoosting classifier with optimized parameters from experiments
-    gb_classifier = GradientBoostingClassifier(
-        n_estimators=100,
-        learning_rate=0.05,
-        max_depth=3,
-        min_samples_split=10,
-        min_samples_leaf=1,
-        subsample=0.8,
-        random_state=random_state
-    )
+    # Default parameters (can be overridden by kwargs)
+    default_params = {
+        'n_estimators': 100,
+        'learning_rate': 0.05,
+        'max_depth': 3,
+        'min_samples_split': 10,
+        'min_samples_leaf': 1,
+        'subsample': 0.8,
+        'random_state': random_state
+    }
+    
+    # Update with any provided kwargs
+    default_params.update(kwargs)
+    
+    # Create GradientBoosting classifier
+    gb_classifier = GradientBoostingClassifier(**default_params)
     
     # Create pipeline
     pipeline = Pipeline([
         ('preprocessor', preprocessor),
-        ('classifier', gb_classifier)
+        ('model', gb_classifier)  # Use 'model' name for consistency with tests
     ])
     
     print(f"   ✅ Pipeline created with GradientBoostingClassifier")
-    print(f"   Parameters: n_estimators=100, learning_rate=0.05, max_depth=3, random_state={random_state}")
+    print(f"   Parameters: {default_params}")
     
     return pipeline
 
@@ -187,12 +194,12 @@ def train_and_evaluate(pipeline, X_train, X_test, y_train, y_test):
             'train_roc_auc': float(roc_auc_score(y_train, y_train_proba)),
             'test_roc_auc': float(roc_auc_score(y_test, y_test_proba)),
             'model_params': {
-                'n_estimators': pipeline.named_steps['classifier'].n_estimators,
-                'learning_rate': pipeline.named_steps['classifier'].learning_rate,
-                'max_depth': pipeline.named_steps['classifier'].max_depth,
-                'min_samples_split': pipeline.named_steps['classifier'].min_samples_split,
-                'min_samples_leaf': pipeline.named_steps['classifier'].min_samples_leaf,
-                'subsample': pipeline.named_steps['classifier'].subsample
+                'n_estimators': pipeline.named_steps['model'].n_estimators,
+                'learning_rate': pipeline.named_steps['model'].learning_rate,
+                'max_depth': pipeline.named_steps['model'].max_depth,
+                'min_samples_split': pipeline.named_steps['model'].min_samples_split,
+                'min_samples_leaf': pipeline.named_steps['model'].min_samples_leaf,
+                'subsample': pipeline.named_steps['model'].subsample
             },
             'feature_count': X_train.shape[1],
             'train_size': int(X_train.shape[0]),
@@ -208,8 +215,8 @@ def train_and_evaluate(pipeline, X_train, X_test, y_train, y_test):
         print(f"      ROC AUC:  {metrics['test_roc_auc']:.4f}")
         
         # Feature importance (top 10)
-        if hasattr(pipeline.named_steps['classifier'], 'feature_importances_'):
-            feature_importance = pipeline.named_steps['classifier'].feature_importances_
+        if hasattr(pipeline.named_steps['model'], 'feature_importances_'):
+            feature_importance = pipeline.named_steps['model'].feature_importances_
             
             # Load feature names
             try:
