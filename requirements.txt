@@ -12,6 +12,7 @@ apache-airflow>=2.5.0
 pytest>=7.0.0
 matplotlib>=3.5.0
 seaborn>=0.11.0
+plotly>=5.0.0
 
 # Optional dependencies (not used in current production pipeline)
 # flask

@@ -352,18 +352,26 @@ def pytest_runtest_teardown(item, nextitem):
 
 def pytest_sessionstart(session):
     """Called after the Session object has been created"""
-    logger.info("=" * 60)
-    logger.info("🚀 STARTING TELCO CHURN PREDICTION TEST SUITE")
-    logger.info("=" * 60)
+    try:
+        logger.info("=" * 60)
+        logger.info("🚀 STARTING TELCO CHURN PREDICTION TEST SUITE")
+        logger.info("=" * 60)
+    except (ValueError, OSError):
+        # Ignore logging errors if stream is closed
+        pass
 
 def pytest_sessionfinish(session, exitstatus):
     """Called after whole test run finished"""
-    logger.info("=" * 60)
-    if exitstatus == 0:
-        logger.info("✅ ALL TESTS PASSED SUCCESSFULLY")
-    else:
-        logger.info(f"❌ TEST SUITE FAILED (exit code: {exitstatus})")
-    logger.info("=" * 60)
+    try:
+        logger.info("=" * 60)
+        if exitstatus == 0:
+            logger.info("✅ ALL TESTS PASSED SUCCESSFULLY")
+        else:
+            logger.info(f"❌ TEST SUITE FAILED (exit code: {exitstatus})")
+        logger.info("=" * 60)
+    except (ValueError, OSError):
+        # Ignore logging errors if stream is closed
+        pass
 
 # Custom pytest markers for test categorization
 pytestmark = [

@@ -13,10 +13,19 @@ from sklearn.metrics import (
     classification_report, confusion_matrix, roc_curve, auc,
     precision_recall_curve, average_precision_score
 )
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import logging
+
+# Optional plotly imports
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    PLOTLY_AVAILABLE = False
+    px = None
+    go = None
+    make_subplots = None
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -167,13 +176,17 @@ class ModelEvaluator:
         plt.grid(True, alpha=0.3)
         plt.show()
     
-    def create_interactive_comparison(self) -> go.Figure:
+    def create_interactive_comparison(self):
         """
         Create interactive comparison dashboard using Plotly.
         
         Returns:
-            go.Figure: Interactive Plotly figure
+            go.Figure: Interactive Plotly figure or None if plotly not available
         """
+        if not PLOTLY_AVAILABLE:
+            logger.warning("Plotly not available. Cannot create interactive comparison.")
+            return None
+            
         if not self.evaluation_results:
             raise ValueError("No evaluation results available")
         
