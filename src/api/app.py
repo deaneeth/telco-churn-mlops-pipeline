@@ -14,7 +14,7 @@ app = Flask(__name__)
 # Load the model once when the app starts
 # Use absolute path to ensure model is found regardless of working directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-MODEL_PATH = PROJECT_ROOT / "artifacts/models/sklearn_pipeline_mlflow.joblib"
+MODEL_PATH = PROJECT_ROOT / "artifacts/models/sklearn_pipeline.joblib"
 model = None
 
 def initialize_model():
@@ -100,5 +100,13 @@ if __name__ == '__main__':
     # Initialize model before starting the server
     initialize_model()
     
-    # Start the Flask development server
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Try to use waitress (production server) if available, otherwise fall back to Flask dev server
+    try:
+        from waitress import serve
+        print("🚀 Starting production server with Waitress on http://0.0.0.0:5000")
+        print("   Press CTRL+C to quit\n")
+        serve(app, host='0.0.0.0', port=5000, threads=4)
+    except ImportError:
+        print("⚠️  Waitress not installed. Using Flask development server...")
+        print("   For production, install waitress: pip install waitress\n")
+        app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
