@@ -1,0 +1,136 @@
+﻿[
+  {
+    "exp": "test_integration_experiment",
+    "run_id": "d5167c7b5fb144e59bd0b2e49348b7dc",
+    "status": "FINISHED",
+    "start_time": 1759532318387,
+    "metrics": {
+      "test_metric": 0.85
+    },
+    "params": {
+      "test_param": "integration_test"
+    }
+  },
+  {
+    "exp": "test_integration_experiment",
+    "run_id": "1625f61136a4496c93e1d147e3b8cb83",
+    "status": "FINISHED",
+    "start_time": 1759531431563,
+    "metrics": {
+      "test_metric": 0.85
+    },
+    "params": {
+      "test_param": "integration_test"
+    }
+  },
+  {
+    "exp": "test_integration_experiment",
+    "run_id": "92a95b238f7f4f739b29395167050c6a",
+    "status": "FINISHED",
+    "start_time": 1759530759385,
+    "metrics": {
+      "test_metric": 0.85
+    },
+    "params": {
+      "test_param": "integration_test"
+    }
+  },
+  {
+    "exp": "simple_demo",
+    "run_id": "ef5d46f7c740439eb95dd48d4345c51d",
+    "status": "FINISHED",
+    "start_time": 1758661149850,
+    "metrics": {
+      "accuracy": 0.7856635911994322,
+      "f1_score": 0.5492537313432836,
+      "precision": 0.6216216216216216,
+      "recall": 0.4919786096256685,
+      "roc_auc": 0.824450386215092
+    },
+    "params": {}
+  },
+  {
+    "exp": "simple_demo",
+    "run_id": "8d8f61ee0bc14142ae114a19bd380549",
+    "status": "FINISHED",
+    "start_time": 1758661143672,
+    "metrics": {},
+    "params": {
+      "model_bootstrap": "True",
+      "model_ccp_alpha": "0.0",
+      "model_class_weight": "None",
+      "model_criterion": "gini",
+      "model_max_depth": "None"
+    }
+  },
+  {
+    "exp": "telco_churn_sklearn",
+    "run_id": "d9741cf8eb384380934ac1e4235034a4",
+    "status": "FINISHED",
+    "start_time": 1758757913765,
+    "metrics": {
+      "accuracy": 0.8005677785663591,
+      "f1_score": 0.5709923664122137,
+      "precision": 0.6654804270462633,
+      "recall": 0.5,
+      "roc_auc": 0.8465628148492599
+    },
+    "params": {}
+  },
+  {
+    "exp": "telco_churn_sklearn",
+    "run_id": "23819f3e802e4439a3bd411d6d836448",
+    "status": "FINISHED",
+    "start_time": 1758757899175,
+    "metrics": {},
+    "params": {
+      "model_ccp_alpha": "0.0",
+      "model_criterion": "friedman_mse",
+      "model_init": "None",
+      "model_learning_rate": "0.05",
+      "model_loss": "log_loss"
+    }
+  },
+  {
+    "exp": "telco_churn_sklearn",
+    "run_id": "c40fed27e5354b8f95c0f1c0b8b5b093",
+    "status": "FINISHED",
+    "start_time": 1758661155388,
+    "metrics": {
+      "accuracy": 0.7856635911994322,
+      "f1_score": 0.5492537313432836,
+      "precision": 0.6216216216216216,
+      "recall": 0.4919786096256685,
+      "roc_auc": 0.8244374693223797
+    },
+    "params": {}
+  },
+  {
+    "exp": "demo_sklearn_pipeline",
+    "run_id": "1263382298ad4ef58dc0643cc0d5d912",
+    "status": "FINISHED",
+    "start_time": 1758661117573,
+    "metrics": {
+      "accuracy": 0.7856635911994322,
+      "f1_score": 0.5492537313432836,
+      "precision": 0.6216216216216216,
+      "recall": 0.4919786096256685,
+      "roc_auc": 0.8244374693223797
+    },
+    "params": {}
+  },
+  {
+    "exp": "demo_sklearn_pipeline",
+    "run_id": "a2adbfb3fc754d9593d90176b3e31311",
+    "status": "FINISHED",
+    "start_time": 1758661111139,
+    "metrics": {},
+    "params": {
+      "model_bootstrap": "True",
+      "model_ccp_alpha": "0.0",
+      "model_class_weight": "None",
+      "model_criterion": "gini",
+      "model_max_depth": "None"
+    }
+  }
+]

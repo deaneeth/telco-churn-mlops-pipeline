@@ -1,0 +1,43 @@
+﻿{
+    "latest_run":  {
+                       "status":  "FINISHED",
+                       "test_accuracy":  0.8006,
+                       "model_version":  18,
+                       "test_roc_auc":  0.8466,
+                       "artifacts_logged":  true,
+                       "experiment":  "telco_churn_sklearn",
+                       "run_id":  "ef568116c828455c902ec768efb9f987"
+                   },
+    "validation_status":  "SUCCESS",
+    "total_runs":  10,
+    "timestamp":  "2025-10-04T04:44:12",
+    "mlflow_ui_url":  "http://localhost:5000",
+    "validation":  "mlflow_experiment_tracking",
+    "reports_generated":  [
+                              "reports/mlruns_tree.txt",
+                              "reports/mlflow_recent_runs.json"
+                          ],
+    "experiment_count":  5,
+    "mlruns_exists":  true,
+    "step":  3,
+    "next_step":  "Proceed to Step 4: Spark pipeline validation or Airflow DAG validation",
+    "evidence":  {
+                     "metrics_logged":  true,
+                     "model_registered":  true,
+                     "artifacts_logged":  true,
+                     "mlflow_training_completed":  true,
+                     "screenshots_captured":  true
+                 },
+    "screenshots":  {
+                        "model_artifact":  {
+                                               "size_kb":  63.9,
+                                               "path":  "docs/images/mlflow_model.png",
+                                               "exists":  true
+                                           },
+                        "runs_list":  {
+                                          "size_kb":  48.72,
+                                          "path":  "docs/images/mlflow_runs.png",
+                                          "exists":  true
+                                      }
+                    }
+}
