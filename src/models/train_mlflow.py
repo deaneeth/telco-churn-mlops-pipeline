@@ -46,10 +46,10 @@ def load_and_prepare_data(data_path, columns_path):
             print(f"   ⚠️  Found {na_count} non-numeric TotalCharges values (converted to NaN)")
         
         # Get feature columns and target
-        numeric_cols = metadata['columns']['numerical']
-        categorical_cols = metadata['columns']['categorical']
+        numeric_cols = metadata.get('numeric_cols', metadata.get('columns', {}).get('numerical', []))
+        categorical_cols = metadata.get('categorical_cols', metadata.get('columns', {}).get('categorical', []))
         feature_columns = numeric_cols + categorical_cols
-        target_column = metadata['columns']['target']
+        target_column = metadata.get('dataset_info', {}).get('target_column', metadata.get('columns', {}).get('target', 'Churn'))
         
         print(f"   Features: {len(feature_columns)} columns")
         print(f"   Target: {target_column}")
@@ -358,8 +358,8 @@ def main():
         mlflow.log_metric("test_churn_rate", test_churn_rate)
         
         # Create fresh preprocessor to avoid sklearn version compatibility issues
-        numeric_cols = metadata['columns']['numerical'] 
-        categorical_cols = metadata['columns']['categorical']
+        numeric_cols = metadata.get('numeric_cols', metadata.get('columns', {}).get('numerical', []))
+        categorical_cols = metadata.get('categorical_cols', metadata.get('columns', {}).get('categorical', []))
         preprocessor = create_fresh_preprocessor(X_train, numeric_cols, categorical_cols)
         if preprocessor is None:
             return
