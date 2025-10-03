@@ -1,0 +1,48 @@
+﻿{
+    "preprocessor":  {
+                         "size_kb":  8.86,
+                         "path":  "artifacts/models/preprocessor.joblib",
+                         "exists":  true
+                     },
+    "validation_status":  "SUCCESS",
+    "step":  2,
+    "metrics_file":  {
+                         "path":  "artifacts/metrics/sklearn_metrics.json",
+                         "content":  {
+                                         "train_accuracy":  0.8157614483493077,
+                                         "test_accuracy":  0.8005677785663591,
+                                         "train_roc_auc":  0.8669208224887501,
+                                         "test_roc_auc":  0.8465628148492599,
+                                         "model_params":  {
+                                                              "n_estimators":  100,
+                                                              "learning_rate":  0.05,
+                                                              "max_depth":  3,
+                                                              "min_samples_split":  10,
+                                                              "min_samples_leaf":  1,
+                                                              "subsample":  0.8
+                                                          },
+                                         "feature_count":  19,
+                                         "train_size":  5634,
+                                         "test_size":  1409
+                                     },
+                         "exists":  true
+                     },
+    "timestamp":  "2025-10-04T04:33:08",
+    "model":  {
+                  "size_kb":  195.78,
+                  "path":  "artifacts/models/sklearn_pipeline.joblib",
+                  "exists":  true
+              },
+    "next_step":  "Proceed to Step 3: MLflow experiment tracking and model registry validation",
+    "pytest_results":  {
+                           "exit_code":  0,
+                           "duration_seconds":  7.9,
+                           "passed":  93,
+                           "warnings":  12,
+                           "skipped":  4,
+                           "status":  "passed",
+                           "log_path":  "reports/pytest_output.txt",
+                           "total_tests":  97
+                       },
+    "validation":  "sklearn_pipeline_and_tests"
+}
