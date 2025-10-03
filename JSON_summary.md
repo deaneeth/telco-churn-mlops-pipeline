@@ -74,3 +74,43 @@ Step 1 — Setup & Verify Environment + Dataset: Complete ✅
  **Feature Names**: Saved to artifacts/models/feature_names.json (45 total features)
 
 ---
+## Step 4  Train scikit-learn Model and Validate Output Files: Complete 
+
+```json
+{
+  \"status\": \"ok\",
+  \"metrics\": {
+    \"accuracy\": 0.8006,
+    \"roc_auc\": 0.8466
+  },
+  \"model_file\": \"artifacts/models/sklearn_pipeline.joblib\",
+  \"fixes_made\": [
+    \"src/models/train.py -> Updated to handle both 'numeric_cols'/'categorical_cols' and nested 'columns' JSON formats\"
+  ],
+  \"next_step\": \"Step 5 - Inference API & tests\"
+}
+```
+
+### Summary of Step 4
+
+ **Training Script**: Found and updated src/models/train.py to handle correct JSON format
+ **Data Preparation**:
+  - Loaded 7,043 samples (5,634 train / 1,409 test)
+  - Stratified split maintaining 26.54% churn rate
+  - Converted TotalCharges to numeric (11 values coerced to NaN)
+ **Model Training**:
+  - Algorithm: GradientBoostingClassifier
+  - Parameters: n_estimators=100, learning_rate=0.05, max_depth=3, subsample=0.8
+  - Input features: 19 (4 numeric + 15 categorical)
+  - Transformed features: 45 (after preprocessing)
+ **Performance Metrics**:
+  - Training Accuracy: 0.8158 (81.58%)
+  - Training ROC AUC: 0.8669 (86.69%)
+  - **Test Accuracy: 0.8006 (80.06%)**
+  - **Test ROC AUC: 0.8466 (84.66%)**
+ **Artifacts Created**:
+  - Model: artifacts/models/sklearn_pipeline.joblib
+  - Metrics: artifacts/metrics/sklearn_metrics.json
+ **Model Quality**: ROC AUC of 0.8466 indicates strong predictive performance (well above 0.6 threshold)
+
+---

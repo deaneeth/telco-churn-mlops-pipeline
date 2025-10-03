@@ -43,11 +43,19 @@ def load_and_prepare_data(data_path, columns_path):
         if na_count > 0:
             print(f"   ⚠️  Found {na_count} non-numeric TotalCharges values (converted to NaN)")
         
-        # Get feature columns and target
-        numeric_cols = metadata['columns']['numerical']
-        categorical_cols = metadata['columns']['categorical']
+        # Get feature columns and target - handle both old and new JSON formats
+        if 'numeric_cols' in metadata:
+            numeric_cols = metadata['numeric_cols']
+            categorical_cols = metadata['categorical_cols']
+            target_column = 'Churn'  # Default target column
+        elif 'columns' in metadata:
+            numeric_cols = metadata['columns'].get('numerical', metadata['columns'].get('numeric', []))
+            categorical_cols = metadata['columns'].get('categorical', [])
+            target_column = metadata['columns'].get('target', 'Churn')
+        else:
+            raise ValueError("Invalid columns metadata format")
+        
         feature_columns = numeric_cols + categorical_cols
-        target_column = metadata['columns']['target']
         
         print(f"📊 Features: {len(feature_columns)} ({len(numeric_cols)} numeric + {len(categorical_cols)} categorical)")
         print(f"   Target: {target_column}")
