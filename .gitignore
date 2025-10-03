@@ -73,3 +73,5 @@ htmlcov/
 # OS specific
 desktop.ini
 /airflow_env/bin
+deliverables.zip
+
