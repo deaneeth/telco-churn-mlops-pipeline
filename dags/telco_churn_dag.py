@@ -31,7 +31,7 @@ dag = DAG(
     'telco_churn_prediction_pipeline',
     default_args=default_args,
     description='Complete ML pipeline for telco customer churn prediction',
-    schedule_interval=None,  # Manual trigger only
+    schedule=None,  # Manual trigger only (Airflow 3.x uses 'schedule' instead of 'schedule_interval')
     max_active_runs=1,
     tags=['ml', 'churn', 'telco', 'prediction']
 )
@@ -39,7 +39,7 @@ dag = DAG(
 # Task 1: Data Preprocessing
 preprocess_task = BashOperator(
     task_id='preprocess',
-    bash_command='cd /opt/airflow && python src/data/preprocess.py',
+    bash_command='cd /mnt/e/ZuuCrew/telco-churn-prediction-mini-project-1 && .venv/Scripts/python.exe src/data/preprocess.py',
     dag=dag,
     doc_md="""
     ## Data Preprocessing Task
@@ -57,7 +57,7 @@ preprocess_task = BashOperator(
 # Task 2: Model Training
 train_task = BashOperator(
     task_id='train',
-    bash_command='cd /opt/airflow && python src/models/train_mlflow.py',
+    bash_command='cd /mnt/e/ZuuCrew/telco-churn-prediction-mini-project-1 && cmd.exe /c "set PYTHONIOENCODING=utf-8 && .venv\\Scripts\\python.exe src\\models\\train_mlflow.py 2>&1"',
     dag=dag,
     doc_md="""
     ## Model Training Task
@@ -72,10 +72,10 @@ train_task = BashOperator(
     **Output**: `artifacts/models/sklearn_pipeline_mlflow.joblib`
     """)
 
-# Task 3: Batch Inference  
+# Task 3: Batch Inference
 inference_task = BashOperator(
     task_id='inference',
-    bash_command='cd /opt/airflow && python src/inference/batch_predict.py',
+    bash_command='cd /mnt/e/ZuuCrew/telco-churn-prediction-mini-project-1 && cmd.exe /c "set PYTHONIOENCODING=utf-8 && .venv\\Scripts\\python.exe src\\inference\\batch_predict.py 2>&1"',
     dag=dag,
     doc_md="""
     ## Batch Inference Task
