@@ -82,8 +82,10 @@ def main():
             unique_count = df[col].nunique()
             print(f"      • {col} ({unique_count} unique values)")
         
-        # Create metadata dictionary
+        # Create metadata dictionary with required format
         metadata = {
+            "numeric_cols": numeric_columns,
+            "categorical_cols": categorical_columns,
             "dataset_info": {
                 "total_rows": int(df.shape[0]),
                 "total_columns": int(df.shape[1]),
@@ -94,12 +96,6 @@ def main():
                 "Yes": int(churn_counts.get('Yes', 0)),
                 "No": int(churn_counts.get('No', 0)),
                 "churn_rate_percent": round(churn_rate, 2)
-            },
-            "columns": {
-                "numeric": numeric_columns,
-                "categorical": categorical_columns,
-                "target": "Churn",
-                "identifier": "customerID"
             },
             "data_quality": {
                 "total_charges_na_count": int(nan_count),

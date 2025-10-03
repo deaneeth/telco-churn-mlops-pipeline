@@ -78,8 +78,15 @@ def fit_save_preprocessor(input_csv, out_path, columns_path=None):
         with open(columns_path, 'r') as f:
             metadata = json.load(f)
         
-        numeric_cols = metadata['columns']['numerical']
-        categorical_cols = metadata['columns']['categorical']
+        # Handle both old and new JSON formats
+        if 'numeric_cols' in metadata:
+            numeric_cols = metadata['numeric_cols']
+            categorical_cols = metadata['categorical_cols']
+        elif 'columns' in metadata:
+            numeric_cols = metadata['columns'].get('numerical', metadata['columns'].get('numeric', []))
+            categorical_cols = metadata['columns'].get('categorical', [])
+        else:
+            raise ValueError("Invalid columns metadata format. Expected 'numeric_cols' and 'categorical_cols' keys.")
         
         print(f"[INFO] Column Information:")
         print(f"   Numeric columns ({len(numeric_cols)}): {numeric_cols}")
