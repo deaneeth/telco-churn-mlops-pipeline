@@ -22,9 +22,9 @@ def initialize_model():
     global model
     try:
         model = load_model(str(MODEL_PATH))
-        print("🚀 Flask app initialized with model loaded")
+        print("[OK] Flask app initialized with model loaded")
     except Exception as e:
-        print(f"❌ Failed to load model on startup: {e}")
+        print(f"[ERROR] Failed to load model on startup: {e}")
         model = None
 
 @app.route('/ping', methods=['GET'])
@@ -103,10 +103,10 @@ if __name__ == '__main__':
     # Try to use waitress (production server) if available, otherwise fall back to Flask dev server
     try:
         from waitress import serve
-        print("🚀 Starting production server with Waitress on http://0.0.0.0:5000")
+        print("[OK] Starting production server with Waitress on http://0.0.0.0:5000")
         print("   Press CTRL+C to quit\n")
         serve(app, host='0.0.0.0', port=5000, threads=4)
     except ImportError:
-        print("⚠️  Waitress not installed. Using Flask development server...")
+        print("[WARN] Waitress not installed. Using Flask development server...")
         print("   For production, install waitress: pip install waitress\n")
         app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)

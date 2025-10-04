@@ -1,0 +1,21 @@
+{
+  "tenure": 12,
+  "MonthlyCharges": 75.50,
+  "TotalCharges": 906.00,
+  "SeniorCitizen": 1,
+  "gender": "Non-binary",
+  "InternetService": "Starlink",
+  "Contract": "Lifetime",
+  "Partner": "Maybe",
+  "Dependents": "Yes",
+  "PhoneService": "Yes",
+  "MultipleLines": "Yes",
+  "OnlineSecurity": "Yes",
+  "OnlineBackup": "Yes",
+  "DeviceProtection": "Yes",
+  "TechSupport": "Yes",
+  "StreamingTV": "Yes",
+  "StreamingMovies": "Yes",
+  "PaperlessBilling": "Yes",
+  "PaymentMethod": "Cryptocurrency"
+}

@@ -1,0 +1,61 @@
+{
+  "status": "ok",
+  "api_ping": "pong",
+  "api_server": {
+    "status": "running",
+    "host": "0.0.0.0",
+    "port": 5000,
+    "server": "Waitress (production)",
+    "model_loaded": true
+  },
+  "predict_sample": {
+    "success": true,
+    "prediction": 1,
+    "probability": 0.5572098995631162,
+    "message": "Prediction successful",
+    "test_input": {
+      "tenure": 1,
+      "MonthlyCharges": 29.85,
+      "TotalCharges": 29.85,
+      "SeniorCitizen": 0,
+      "gender": "Female",
+      "InternetService": "DSL",
+      "Contract": "Month-to-month"
+    }
+  },
+  "predict_unseen": {
+    "success": true,
+    "prediction": 0,
+    "probability": 0.20052848004663149,
+    "message": "Prediction successful",
+    "test_input": {
+      "gender": "Non-binary",
+      "InternetService": "Starlink",
+      "Contract": "Lifetime",
+      "PaymentMethod": "Cryptocurrency"
+    },
+    "note": "API successfully handled unseen categories without crashing"
+  },
+  "docker": {
+    "status": "skipped",
+    "reason": "Docker Desktop not running",
+    "docker_installed": true,
+    "dockerfile_exists": true,
+    "recommendation": "Start Docker Desktop and run: docker build -t telco-churn-api:latest ."
+  },
+  "issues_fixed": [
+    "Unicode encoding issues (emoji characters) in print statements",
+    "Changed emojis to [OK], [ERROR], [INFO], [WARN] for Windows compatibility",
+    "Ensured proper model loading and error handling"
+  ],
+  "test_files_created": [
+    "reports/api_predict.json",
+    "reports/api_unseen.json",
+    "reports/test_input.json",
+    "reports/test_unseen.json",
+    "reports/api_server.log",
+    "reports/docker_build.log"
+  ],
+  "validation_timestamp": "2025-10-04T01:00:00",
+  "next_hint": "Proceed to README & documentation verification prompt"
+}

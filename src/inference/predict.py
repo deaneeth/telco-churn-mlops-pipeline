@@ -32,14 +32,14 @@ def load_model(model_path: str):
             warnings.filterwarnings("ignore", category=UserWarning)
             model = joblib.load(model_path_obj)
         
-        print(f"✅ Model loaded successfully from {model_path}")
-        print(f"📊 Current sklearn version: {sklearn.__version__}")
+        print(f"[OK] Model loaded successfully from {model_path}")
+        print(f"[INFO] Current sklearn version: {sklearn.__version__}")
         return model
         
     except AttributeError as e:
         if "_RemainderColsList" in str(e) or "sklearn.compose" in str(e):
             error_msg = (
-                f"❌ Sklearn version compatibility issue: {e}\n"
+                f"[ERROR] Sklearn version compatibility issue: {e}\n"
                 f"Current sklearn version: {sklearn.__version__}\n"
                 f"Model was likely trained with a different sklearn version.\n"
                 f"Please retrain the model or ensure sklearn version compatibility."
@@ -47,11 +47,11 @@ def load_model(model_path: str):
             print(error_msg)
             raise Exception(error_msg)
         else:
-            print(f"❌ ERROR: Failed to load model - {e}")
+            print(f"[ERROR] Failed to load model - {e}")
             raise
         
     except Exception as e:
-        print(f"❌ ERROR: Failed to load model - {e}")
+        print(f"[ERROR] Failed to load model - {e}")
         raise
 
 def predict_from_dict(model, input_dict: Dict[str, Union[str, int, float]]) -> Dict[str, Union[int, float]]:
@@ -111,11 +111,11 @@ def predict_from_dict(model, input_dict: Dict[str, Union[str, int, float]]) -> D
             "probability": float(probability)
         }
         
-        print(f"📊 Prediction: {result['prediction']}, Probability: {result['probability']:.4f}")
+        print(f"[INFO] Prediction: {result['prediction']}, Probability: {result['probability']:.4f}")
         return result
         
     except Exception as e:
-        print(f"❌ ERROR: Prediction failed - {e}")
+        print(f"[ERROR] Prediction failed - {e}")
         raise
 
 
