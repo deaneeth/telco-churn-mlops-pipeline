@@ -16,6 +16,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+from sklearn.utils.class_weight import compute_sample_weight
 import joblib
 import mlflow
 import mlflow.sklearn
@@ -235,9 +236,13 @@ class TelcoChurnPipeline:
             self.create_preprocessor(X_train)
             self.create_pipeline(model_type)
             
+            # Compute sample weights for imbalanced classes
+            logger.info("Computing sample weights for balanced training...")
+            sample_weights = compute_sample_weight(class_weight='balanced', y=y_train)
+            
             # Train the pipeline
-            logger.info(f"Training {model_type} pipeline...")
-            self.pipeline.fit(X_train, y_train)
+            logger.info(f"Training {model_type} pipeline with class weighting...")
+            self.pipeline.fit(X_train, y_train, classifier__sample_weight=sample_weights)
             
             training_time = (datetime.now() - start_time).total_seconds()
             
@@ -246,6 +251,8 @@ class TelcoChurnPipeline:
             mlflow.log_param("training_samples", len(X_train))
             mlflow.log_param("n_features", X_train.shape[1])
             mlflow.log_param("training_time_seconds", training_time)
+            mlflow.log_param("class_weight", "balanced")
+            mlflow.log_param("decision_threshold", 0.35)  # Optimized for recall
             
             # Log model parameters
             model_params = self.pipeline.named_steps['classifier'].get_params()

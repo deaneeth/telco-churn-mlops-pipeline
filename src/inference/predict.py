@@ -54,16 +54,17 @@ def load_model(model_path: str):
         print(f"[ERROR] Failed to load model - {e}")
         raise
 
-def predict_from_dict(model, input_dict: Dict[str, Union[str, int, float]]) -> Dict[str, Union[int, float]]:
+def predict_from_dict(model, input_dict: Dict[str, Union[str, int, float]], threshold: float = 0.35) -> Dict[str, Union[int, float]]:
     """
     Make a prediction from a dictionary of input features.
     
     Args:
         model: Trained sklearn pipeline
         input_dict (dict): Dictionary containing feature values
+        threshold (float): Decision threshold for classification (default: 0.35, optimized for recall)
     
     Returns:
-        dict: Dictionary with 'prediction' (int) and 'probability' (float)
+        dict: Dictionary with 'prediction' (int), 'probability' (float), and 'threshold_used' (float)
     
     Raises:
         KeyError: If required features are missing from input_dict
@@ -102,16 +103,19 @@ def predict_from_dict(model, input_dict: Dict[str, Union[str, int, float]]) -> D
         # Select only the expected features in the correct order
         X = input_df[expected_features]
         
-        # Make prediction
-        prediction = model.predict(X)[0]
+        # Get prediction probability
         probability = model.predict_proba(X)[0, 1]  # Probability of positive class (churn)
+        
+        # Apply custom threshold for prediction (optimized for recall)
+        prediction = 1 if probability >= threshold else 0
         
         result = {
             "prediction": int(prediction),
-            "probability": float(probability)
+            "probability": float(probability),
+            "threshold_used": float(threshold)
         }
         
-        print(f"[INFO] Prediction: {result['prediction']}, Probability: {result['probability']:.4f}")
+        print(f"[INFO] Prediction: {result['prediction']}, Probability: {result['probability']:.4f}, Threshold: {threshold}")
         return result
         
     except Exception as e:
@@ -147,15 +151,16 @@ class ChurnPredictor:
         self.model = load_model(model_path)
         self.model_path = model_path
     
-    def predict(self, input_data: Union[Dict, pd.DataFrame]) -> Dict[str, Union[int, float]]:
+    def predict(self, input_data: Union[Dict, pd.DataFrame], threshold: float = 0.35) -> Dict[str, Union[int, float]]:
         """
         Make a prediction using the loaded model.
         
         Args:
             input_data: Input data as dictionary or DataFrame
+            threshold: Decision threshold for classification (default: 0.35, optimized for recall)
             
         Returns:
-            Dict containing prediction and probability
+            Dict containing prediction, probability, and threshold_used
             
         Raises:
             ValueError: If no model is loaded
@@ -164,13 +169,13 @@ class ChurnPredictor:
             raise ValueError("No model loaded. Call load_model() first.")
         
         if isinstance(input_data, dict):
-            return predict_from_dict(self.model, input_data)
+            return predict_from_dict(self.model, input_data, threshold=threshold)
         elif isinstance(input_data, pd.DataFrame):
             # Convert DataFrame to dict format for compatibility
             if len(input_data) > 1:
                 raise ValueError("DataFrame should contain exactly one row for single prediction")
             input_dict = input_data.iloc[0].to_dict()
-            return predict_from_dict(self.model, input_dict)
+            return predict_from_dict(self.model, input_dict, threshold=threshold)
         else:
             raise ValueError("Input data must be a dictionary or pandas DataFrame")
     
