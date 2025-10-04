@@ -1,0 +1,53 @@
+{
+  "status": "skipped",
+  "spark_present": false,
+  "reason": "Apache Spark not installed in environment",
+  "sklearn_metrics": {
+    "test_roc_auc": 0.8465628148492599,
+    "test_accuracy": 0.8005677785663591,
+    "train_roc_auc": 0.8669208224887501,
+    "train_accuracy": 0.8157614483493077,
+    "feature_count": 19,
+    "model_type": "GradientBoostingClassifier",
+    "runtime_source": "artifacts/metrics/sklearn_metrics.json"
+  },
+  "spark_metrics": {
+    "test_roc_auc": null,
+    "test_accuracy": null,
+    "runtime_seconds": null,
+    "model_path": null,
+    "status": "not_executed"
+  },
+  "comparison": {
+    "roc_auc_diff": null,
+    "accuracy_diff": null,
+    "runtime_diff": null,
+    "winner": "N/A - Spark not available"
+  },
+  "installation_instructions": {
+    "local_installation": [
+      "Download Apache Spark from https://spark.apache.org/downloads.html",
+      "Extract to a directory (e.g., C:\\spark)",
+      "Add SPARK_HOME environment variable pointing to Spark directory",
+      "Add %SPARK_HOME%\\bin to PATH",
+      "Install PySpark: pip install pyspark",
+      "Verify: spark-submit --version"
+    ],
+    "alternative_execution": [
+      "Use Azure Databricks for cloud-based Spark execution",
+      "Use Google Colab with PySpark installed",
+      "Use AWS EMR for managed Spark clusters",
+      "Use Docker with Spark image: docker run -it apache/spark-py /opt/spark/bin/pyspark"
+    ],
+    "pipeline_location": "pipelines/spark_pipeline.py",
+    "expected_output": "artifacts/models/spark_rf/"
+  },
+  "validation_timestamp": "2025-10-04T00:30:00",
+  "next_steps": [
+    "Install Apache Spark locally OR",
+    "Run Spark pipeline in cloud environment (Databricks/EMR)",
+    "For production: Spark recommended for large-scale data (>1M rows)",
+    "For current dataset size (~7K rows): sklearn is sufficient"
+  ],
+  "recommendation": "For dataset size of 7,043 rows, sklearn pipeline is appropriate. Spark would be beneficial for datasets >100K rows or distributed computing requirements."
+}

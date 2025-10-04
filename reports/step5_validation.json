@@ -1,0 +1,12 @@
+﻿{
+    "pipeline_file":  "pipelines/spark_pipeline.py",
+    "recommendation":  "sklearn appropriate for dataset size (~7K rows)",
+    "spark_model_path":  null,
+    "spark_present":  false,
+    "log_file":  "reports/spark_run.log",
+    "next_hint":  "Proceed to API \u0026 Docker validation prompt",
+    "sklearn_roc":  0.84656281484925988,
+    "spark_roc":  null,
+    "comparison_report":  "reports/spark_vs_sklearn.json",
+    "status":  "skipped"
+}
