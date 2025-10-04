@@ -75,3 +75,5 @@ desktop.ini
 /airflow_env/bin
 deliverables.zip
 
+/wsl_airflow_env
+

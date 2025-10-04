@@ -1,0 +1,40 @@
+{
+  "dags/telco_churn_dag.py": {
+    "file_exists": true,
+    "syntax_valid": true,
+    "dag_found": true,
+    "tasks_found": [
+      "preprocess_task",
+      "train_task",
+      "inference_task"
+    ],
+    "dependencies": [
+      "Task dependencies found using >> operator"
+    ],
+    "errors": [],
+    "task_ids": [
+      "preprocess",
+      "train",
+      "inference"
+    ]
+  },
+  "airflow_home/dags/telco_churn_dag.py": {
+    "file_exists": true,
+    "syntax_valid": true,
+    "dag_found": true,
+    "tasks_found": [
+      "preprocess_task",
+      "train_task",
+      "inference_task"
+    ],
+    "dependencies": [
+      "Task dependencies found using >> operator"
+    ],
+    "errors": [],
+    "task_ids": [
+      "preprocess",
+      "train",
+      "inference"
+    ]
+  }
+}

@@ -1,12 +1,11 @@
 {
   "feature_names": [
+    "SeniorCitizen",
     "tenure",
     "MonthlyCharges",
     "TotalCharges",
     "gender_Female",
     "gender_Male",
-    "SeniorCitizen_0",
-    "SeniorCitizen_1",
     "Partner_No",
     "Partner_Yes",
     "Dependents_No",
@@ -48,13 +47,13 @@
     "PaymentMethod_Mailed check"
   ],
   "numeric_features": [
+    "SeniorCitizen",
     "tenure",
     "MonthlyCharges",
     "TotalCharges"
   ],
   "categorical_features": [
     "gender",
-    "SeniorCitizen",
     "Partner",
     "Dependents",
     "PhoneService",
@@ -70,5 +69,5 @@
     "PaperlessBilling",
     "PaymentMethod"
   ],
-  "total_features": 46
+  "total_features": 45
 }
