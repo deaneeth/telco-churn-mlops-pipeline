@@ -1137,16 +1137,6 @@ We welcome contributions! Please follow these guidelines:
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-```
-MIT License
-
-Copyright (c) 2025 Telco Churn MLOps Pipeline Contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction...
-```
-
 ---
 
 ## 🙏 Acknowledgments
@@ -1164,11 +1154,6 @@ in the Software without restriction...
 - [Docker](https://www.docker.com/) - Containerization
 - [pytest](https://pytest.org/) - Testing framework
 
-### References
-- **MLOps Best Practices**: [Google Cloud MLOps](https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning)
-- **Churn Prediction**: Academic research on telecom churn modeling
-- **Production ML**: [Designing Machine Learning Systems](https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/) by Chip Huyen
-
 ---
 
 ## 📞 Contact & Support
@@ -1181,11 +1166,6 @@ in the Software without restriction...
 - **Project Wiki**: [GitHub Wiki](https://github.com/deaneeth/telco-churn-mlops-pipeline/wiki)
 - **API Docs**: See `docs/api.md`
 - **Compliance Report**: `compliance_report.md`
-
-### Support Resources
-- **FAQ**: [docs/FAQ.md](docs/FAQ.md)
-- **Troubleshooting**: See [Troubleshooting](#troubleshooting) section above
-- **Tutorials**: [YouTube Playlist](link-to-tutorials)
 
 ---
 
