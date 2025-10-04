@@ -1,0 +1,22 @@
+﻿[OK] Model loaded successfully from /app/artifacts/models/sklearn_pipeline.joblib
+[INFO] Current sklearn version: 1.6.1
+[OK] Flask app initialized with model loaded
+[WARN] Waitress not installed. Using Flask development server...
+   For production, install waitress: pip install waitress
+
+ * Serving Flask app 'app'
+ * Debug mode: off
+docker : [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a 
+production WSGI server instead.[0m
+At line:1 char:1
++ docker logs telco_churn_test 2>&1 | Out-File "reports/docker_containe ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([31m[1mWARNIN...er instead.[0m:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.17.0.2:5000
+[33mPress CTRL+C to quit[0m
+172.17.0.1 - - [04/Oct/2025 01:00:34] "GET /ping HTTP/1.1" 200 -
+172.17.0.1 - - [04/Oct/2025 01:00:53] "POST /predict HTTP/1.1" 200 -

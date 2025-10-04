@@ -1,0 +1,113 @@
+{
+  "status": "ok",
+  "docker_validation": {
+    "docker_installed": true,
+    "docker_version": "28.4.0",
+    "docker_daemon_running": true
+  },
+  "dockerfile": {
+    "exists": true,
+    "location": "Dockerfile",
+    "model_artifacts_included": true,
+    "artifacts": [
+      "artifacts/models/sklearn_pipeline.joblib",
+      "artifacts/models/feature_names.json"
+    ]
+  },
+  "docker_image": {
+    "name": "telco-churn-api:latest",
+    "image_id": "ad37ad322b87",
+    "size": "1.47GB",
+    "created": "2025-10-04",
+    "build_status": "success"
+  },
+  "docker_build": {
+    "status": "success",
+    "log_file": "reports/docker_build.log",
+    "base_image": "python:3.10-slim",
+    "layers": [
+      "WORKDIR /app",
+      "COPY requirements.txt",
+      "RUN pip install",
+      "COPY src/",
+      "COPY artifacts/models/sklearn_pipeline.joblib",
+      "COPY artifacts/models/feature_names.json",
+      "EXPOSE 5000",
+      "CMD python src/api/app.py"
+    ]
+  },
+  "container": {
+    "name": "telco_churn_test",
+    "container_id": "8e1e9fb14bee",
+    "status": "running",
+    "port_mapping": "5000:5000",
+    "command": "python src/api/app.py",
+    "uptime": "running"
+  },
+  "container_ping": {
+    "endpoint": "http://localhost:5000/ping",
+    "response": "pong",
+    "status": "success"
+  },
+  "predict_response_sample": {
+    "endpoint": "http://localhost:5000/predict",
+    "method": "POST",
+    "input": {
+      "tenure": 1,
+      "MonthlyCharges": 29.85,
+      "TotalCharges": 29.85,
+      "SeniorCitizen": 0,
+      "gender": "Female",
+      "InternetService": "DSL",
+      "Contract": "Month-to-month"
+    },
+    "response": {
+      "success": true,
+      "prediction": 1,
+      "probability": 0.5572098995631162,
+      "message": "Prediction successful"
+    },
+    "status": "success"
+  },
+  "container_logs": {
+    "model_loaded": true,
+    "sklearn_version": "1.6.1",
+    "server": "Flask development server",
+    "note": "Waitress not in requirements.txt - using Flask dev server",
+    "recommendation": "Add waitress to requirements.txt for production",
+    "log_file": "reports/docker_container_logs.txt"
+  },
+  "test_summary": {
+    "total_tests": 2,
+    "passed": 2,
+    "failed": 0,
+    "tests": [
+      {
+        "name": "Container Ping Test",
+        "status": "passed",
+        "expected": "pong",
+        "actual": "pong"
+      },
+      {
+        "name": "Container Predict Test",
+        "status": "passed",
+        "expected": "prediction with probability",
+        "actual": "prediction=1, probability=0.5572"
+      }
+    ]
+  },
+  "improvements": [
+    {
+      "item": "Add waitress to requirements.txt",
+      "reason": "Container is using Flask dev server instead of production WSGI server",
+      "priority": "medium"
+    }
+  ],
+  "files_created": [
+    "reports/docker_test.json",
+    "reports/docker_build.log",
+    "reports/docker_container_logs.txt"
+  ],
+  "validation_timestamp": "2025-10-04T01:30:00",
+  "next_step": "Step 12 - Full end-to-end run + folder audit + PDF compliance"
+}
