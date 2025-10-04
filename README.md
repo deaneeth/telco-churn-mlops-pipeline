@@ -13,40 +13,6 @@
 
 ---
 
-## 📋 Table of Contents
-
-- [🎯 Overview](#-overview)
-- [✨ Features](#-features)
-- [📁 Project Structure](#-project-structure)
-- [🏗️ Architecture](#️-architecture)
-- [🚀 Getting Started](#-getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Configuration](#configuration)
-- [📖 Usage](#-usage)
-  - [1. Data Preprocessing](#1-data-preprocessing)
-  - [2. Model Training](#2-model-training)
-  - [3. Distributed Training with PySpark](#3-distributed-training-with-pyspark)
-  - [4. Batch Inference](#4-batch-inference)
-  - [5. Real-time API](#5-real-time-api)
-  - [6. Airflow Orchestration](#6-airflow-orchestration)
-- [📊 Model Performance](#-model-performance)
-- [🧪 Testing](#-testing)
-- [🐳 Deployment](#-deployment)
-- [🛠️ Makefile Commands](#️-makefile-commands)
-- [📦 Project Artifacts](#-project-artifacts)
-- [🔧 MLOps Components](#-mlops-components)
-- [✅ Compliance & Quality](#-compliance--quality)
-- [🐛 Troubleshooting](#-troubleshooting)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
-- [🙏 Acknowledgments](#-acknowledgments)
-- [📞 Contact & Support](#-contact--support)
-- [📈 Project Metrics](#-project-metrics)
-- [🎯 Roadmap](#-roadmap)
-
----
-
 ## 🎯 Overview
 
 This project implements a complete **MLOps pipeline** for predicting customer churn using the **Telco Customer Churn dataset**. It demonstrates industry best practices for productionizing machine learning models, including:
