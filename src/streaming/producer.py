@@ -25,7 +25,7 @@ import os
 import signal
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, Any, Optional, Generator
 import random
@@ -201,10 +201,10 @@ def customer_to_message(customer: pd.Series, add_timestamp: bool = True) -> Dict
     # Add event timestamp
     if add_timestamp:
         # Random timestamp within last 24 hours for more realistic simulation
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         random_offset = timedelta(seconds=random.randint(0, 86400))
         event_time = now - random_offset
-        message['event_ts'] = event_time.isoformat() + 'Z'
+        message['event_ts'] = event_time.isoformat().replace('+00:00', 'Z')
     
     return message
 
@@ -311,7 +311,7 @@ def save_checkpoint(
     checkpoint_data = {
         "last_row": last_row,
         "last_offset": last_offset,
-        "timestamp": datetime.utcnow().isoformat() + 'Z'
+        "timestamp": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
     }
     
     # Create directory if it doesn't exist

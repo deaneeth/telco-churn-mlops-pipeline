@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/telco-churn-prediction.schema.json",
+  "title": "Telco Churn Prediction Result",
+  "description": "Schema for churn prediction results published to telco.churn.predictions topic",
+  "type": "object",
+  "required": [
+    "customerID",
+    "churn_probability",
+    "prediction",
+    "event_ts",
+    "processed_ts"
+  ],
+  "properties": {
+    "customerID": {
+      "type": "string",
+      "description": "Unique customer identifier",
+      "pattern": "^[0-9]{4}-[A-Z]{5}$",
+      "examples": ["7590-VHVEG", "1345-ZUKID"]
+    },
+    "churn_probability": {
+      "type": "number",
+      "description": "Predicted probability of churn (0.0 to 1.0)",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "prediction": {
+      "type": "string",
+      "description": "Binary churn prediction",
+      "enum": ["Yes", "No"]
+    },
+    "event_ts": {
+      "type": "string",
+      "description": "Original event timestamp from input message (ISO 8601 UTC)",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z?$",
+      "examples": ["2025-10-03T04:00:00Z", "2025-10-11T14:23:45.123456Z"]
+    },
+    "processed_ts": {
+      "type": "string",
+      "description": "Timestamp when prediction was made (ISO 8601 UTC)",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z?$",
+      "examples": ["2025-10-11T15:30:00.123456Z"]
+    },
+    "model_version": {
+      "type": "string",
+      "description": "Version of the model used for prediction (optional)",
+      "examples": ["v1.0", "sklearn_pipeline_v1"]
+    },
+    "inference_latency_ms": {
+      "type": "number",
+      "description": "Time taken for inference in milliseconds (optional)",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}
