@@ -792,6 +792,38 @@ docker exec -it telco-redpanda rpk topic consume telco.raw.customers --format js
 - Click "Topics" → `telco.raw.customers`
 - View messages in real-time
 
+#### E. Message Validation (Optional)
+
+Enable schema validation to ensure message quality:
+
+```bash
+# Streaming mode with validation
+python -m src.streaming.producer \
+    --mode streaming \
+    --events-per-sec 5 \
+    --validate \
+    --dry-run
+
+# Batch mode with validation
+python -m src.streaming.producer \
+    --mode batch \
+    --batch-size 100 \
+    --validate
+```
+
+**Validation Features:**
+- ✅ Validates against JSON Schema (`schemas/telco_customer_schema.json`)
+- ✅ Checks required fields (22 total)
+- ✅ Validates field types and value ranges
+- ✅ Enforces enum constraints
+- ✅ Pattern matching for customerID and timestamps
+- ✅ Logs validation failures with detailed error messages
+- ✅ Tracks validation metrics (sent vs failed)
+
+**Note:** Run as a module (`python -m src.streaming.producer`) to enable validation.
+
+For detailed schema documentation, see: [`docs/kafka_schema.md`](docs/kafka_schema.md)
+
 #### CLI Arguments Reference
 
 | Argument | Type | Default | Description |
@@ -804,6 +836,7 @@ docker exec -it telco-redpanda rpk topic consume telco.raw.customers --format js
 | `--checkpoint-file` | string | `artifacts/producer_checkpoint.json` | Batch mode resume file |
 | `--dataset-path` | string | `data/raw/Telco-Customer-Churn.csv` | Input CSV path |
 | `--dry-run` | flag | `false` | Test mode (no Kafka) |
+| `--validate` | flag | `false` | Enable message schema validation |
 | `--log-level` | string | `INFO` | `DEBUG`, `INFO`, `WARNING`, `ERROR` |
 
 #### Logging & Monitoring
