@@ -651,6 +651,246 @@ load_data → preprocess_data → train_model → evaluate_model → batch_infer
 
 ---
 
+### 7. Kafka Streaming Producer (Mini Project 2)
+
+**Produce customer data to Kafka topics for real-time churn prediction:**
+
+#### Prerequisites
+
+Make sure Kafka is running:
+```bash
+# Start Kafka (Redpanda)
+docker compose -f docker-compose.kafka.yml up -d
+
+# Create topics
+bash scripts/kafka_create_topics.sh
+# OR on Windows PowerShell
+.\scripts\kafka_create_topics.ps1
+
+# Verify topics
+docker exec telco-redpanda rpk topic list
+```
+
+#### A. Dry-Run Mode (No Kafka Required)
+
+Test message generation without publishing:
+
+```bash
+# Streaming mode dry-run
+python src/streaming/producer.py \
+    --mode streaming \
+    --events-per-sec 5 \
+    --dry-run
+
+# Batch mode dry-run
+python src/streaming/producer.py \
+    --mode batch \
+    --batch-size 100 \
+    --dry-run
+```
+
+**Output:**
+- Messages logged to `logs/kafka_producer.log`
+- Schema validation performed
+- No actual Kafka publishing
+
+#### B. Streaming Mode (Continuous Random Sampling)
+
+Continuously sample random customers from dataset:
+
+```bash
+# Basic streaming (1 event/sec)
+python src/streaming/producer.py --mode streaming
+
+# High-throughput streaming (10 events/sec)
+python src/streaming/producer.py \
+    --mode streaming \
+    --events-per-sec 10 \
+    --broker localhost:19092 \
+    --topic telco.raw.customers
+
+# With custom dataset
+python src/streaming/producer.py \
+    --mode streaming \
+    --events-per-sec 5 \
+    --dataset-path data/raw/Custom-Data.csv
+```
+
+**Behavior:**
+- Random customer sampling from dataset
+- Adds `event_ts` timestamp (randomized within 24h)
+- Message key: `customerID`
+- JSON format with all customer attributes
+- Press `Ctrl+C` for graceful shutdown
+
+**Example Message:**
+```json
+{
+  "customerID": "7590-VHVEG",
+  "gender": "Female",
+  "SeniorCitizen": 0,
+  "Partner": "Yes",
+  "tenure": 1,
+  "MonthlyCharges": 29.85,
+  "TotalCharges": 29.85,
+  "Churn": "No",
+  "event_ts": "2025-10-10T14:23:15Z"
+}
+```
+
+#### C. Batch Mode (Sequential CSV Processing)
+
+Process entire dataset in chunks with checkpoint resume:
+
+```bash
+# Basic batch processing
+python src/streaming/producer.py --mode batch
+
+# Custom batch size
+python src/streaming/producer.py \
+    --mode batch \
+    --batch-size 500 \
+    --checkpoint-file artifacts/my_checkpoint.json
+
+# Resume interrupted processing
+python src/streaming/producer.py \
+    --mode batch \
+    --checkpoint-file artifacts/producer_checkpoint.json
+```
+
+**Features:**
+- Sequential CSV reading
+- Chunked processing (default: 100 records/batch)
+- Checkpoint save/resume (survives crashes)
+- Progress logging every batch
+
+**Checkpoint Format:**
+```json
+{
+  "last_row": 5634,
+  "last_offset": 5634,
+  "timestamp": "2025-10-10T15:30:00Z"
+}
+```
+
+#### D. Verify Messages
+
+**Option 1: Console Consumer**
+```bash
+# Consume all messages
+docker exec -it telco-redpanda rpk topic consume telco.raw.customers --from-beginning
+
+# Consume latest messages
+docker exec -it telco-redpanda rpk topic consume telco.raw.customers --num 10
+
+# JSON formatted output
+docker exec -it telco-redpanda rpk topic consume telco.raw.customers --format json
+```
+
+**Option 2: Redpanda Console UI**
+- Navigate to: `http://localhost:8080`
+- Click "Topics" → `telco.raw.customers`
+- View messages in real-time
+
+#### CLI Arguments Reference
+
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `--mode` | string | **required** | `streaming` or `batch` |
+| `--broker` | string | `localhost:19092` | Kafka bootstrap server |
+| `--topic` | string | `telco.raw.customers` | Target topic name |
+| `--events-per-sec` | float | `1.0` | Streaming mode rate |
+| `--batch-size` | int | `100` | Batch mode chunk size |
+| `--checkpoint-file` | string | `artifacts/producer_checkpoint.json` | Batch mode resume file |
+| `--dataset-path` | string | `data/raw/Telco-Customer-Churn.csv` | Input CSV path |
+| `--dry-run` | flag | `false` | Test mode (no Kafka) |
+| `--log-level` | string | `INFO` | `DEBUG`, `INFO`, `WARNING`, `ERROR` |
+
+#### Logging & Monitoring
+
+**Log File:** `logs/kafka_producer.log`
+
+```bash
+# Tail logs in real-time
+tail -f logs/kafka_producer.log
+
+# Check for errors
+grep ERROR logs/kafka_producer.log
+
+# View metrics summary
+grep "SUMMARY" logs/kafka_producer.log
+```
+
+**Metrics Tracked:**
+- Total messages sent
+- Total failures
+- Duration
+- Average event rate (events/sec)
+- Checkpoint progress (batch mode)
+
+#### Troubleshooting
+
+**Issue: Connection Refused**
+```bash
+# Verify Kafka is running
+docker compose -f docker-compose.kafka.yml ps
+
+# Check broker connectivity
+docker exec telco-redpanda rpk cluster health
+```
+
+**Issue: Topic Not Found**
+```bash
+# List topics
+docker exec telco-redpanda rpk topic list
+
+# Create missing topic
+docker exec telco-redpanda rpk topic create telco.raw.customers --partitions 3
+```
+
+**Issue: Checkpoint Not Working**
+```bash
+# Verify checkpoint file exists
+cat artifacts/producer_checkpoint.json
+
+# Reset checkpoint (start from beginning)
+rm artifacts/producer_checkpoint.json
+```
+
+**Issue: Dataset Not Found**
+```bash
+# Verify dataset path
+ls -lh data/raw/Telco-Customer-Churn.csv
+
+# Use absolute path if needed
+```bash
+# Use absolute path if needed
+python src/streaming/producer.py --mode streaming --dataset-path /full/path/to/dataset.csv
+```
+```
+
+#### Performance Tuning
+
+**High-Throughput Streaming:**
+```bash
+# 100 events/sec (7,043 customers replayed every ~70 seconds)
+python src/streaming/producer.py --mode streaming --events-per-sec 100
+```
+
+**Large Batch Processing:**
+```bash
+# 1000 records per batch (faster processing, less checkpointing)
+python src/streaming/producer.py --mode batch --batch-size 1000
+```
+
+**Debug Mode:**
+```bash
+# Verbose logging for troubleshooting
+python src/streaming/producer.py --mode streaming --log-level DEBUG --dry-run
+```
+
+---
+
 ## 📊 Model Performance
 
 ### Scikit-learn GradientBoostingClassifier (Recall-Optimized)
