@@ -317,6 +317,121 @@ notebook-docs: ## Convert notebooks to documentation
 		echo "$(RED)Jupyter not installed. Run 'make install-dev' first.$(NC)"; \
 	fi
 
+##@ Kafka Infrastructure (Mini Project 2)
+kafka-up: ## Start Kafka/Redpanda services (Redpanda + Console)
+	@echo "$(YELLOW)Starting Kafka infrastructure...$(NC)"
+	docker compose -f docker-compose.kafka.yml up -d
+	@echo "$(GREEN)Kafka services started!$(NC)"
+	@echo "$(BLUE)Redpanda Console:$(NC) http://localhost:8080"
+	@echo "$(BLUE)Kafka Broker:$(NC) localhost:19092"
+
+kafka-down: ## Stop Kafka services
+	@echo "$(YELLOW)Stopping Kafka services...$(NC)"
+	docker compose -f docker-compose.kafka.yml down
+	@echo "$(GREEN)Kafka services stopped.$(NC)"
+
+kafka-down-volumes: ## Stop Kafka and remove all data volumes (DESTRUCTIVE)
+	@echo "$(RED)WARNING: This will delete all Kafka topics and messages!$(NC)"
+	@echo "$(YELLOW)Stopping Kafka and removing volumes...$(NC)"
+	docker compose -f docker-compose.kafka.yml down -v
+	@echo "$(GREEN)Kafka services stopped and volumes removed.$(NC)"
+
+kafka-status: ## Check Kafka service health
+	@echo "$(YELLOW)Checking Kafka service status...$(NC)"
+	@docker compose -f docker-compose.kafka.yml ps
+	@echo ""
+	@echo "$(YELLOW)Redpanda cluster health:$(NC)"
+	@docker exec telco-redpanda rpk cluster health 2>/dev/null || echo "$(RED)Redpanda not running$(NC)"
+
+kafka-topics: ## Create Kafka topics (telco.raw.customers, telco.churn.predictions, telco.deadletter)
+	@echo "$(YELLOW)Creating Kafka topics...$(NC)"
+	@if [ -x scripts/kafka_create_topics.sh ]; then \
+		bash scripts/kafka_create_topics.sh; \
+	else \
+		chmod +x scripts/kafka_create_topics.sh && bash scripts/kafka_create_topics.sh; \
+	fi
+
+kafka-list: ## List all Kafka topics
+	@echo "$(YELLOW)Listing Kafka topics...$(NC)"
+	@docker exec telco-redpanda rpk topic list
+
+kafka-describe: ## Describe a Kafka topic (usage: make kafka-describe TOPIC=telco.raw.customers)
+	@if [ -z "$(TOPIC)" ]; then \
+		echo "$(RED)Error: TOPIC variable required$(NC)"; \
+		echo "Usage: make kafka-describe TOPIC=telco.raw.customers"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)Describing topic: $(TOPIC)$(NC)"
+	@docker exec telco-redpanda rpk topic describe $(TOPIC)
+
+kafka-console: ## Open Redpanda Console in browser
+	@echo "$(BLUE)Opening Redpanda Console...$(NC)"
+	@if command -v xdg-open >/dev/null 2>&1; then \
+		xdg-open http://localhost:8080; \
+	elif command -v open >/dev/null 2>&1; then \
+		open http://localhost:8080; \
+	elif command -v start >/dev/null 2>&1; then \
+		start http://localhost:8080; \
+	else \
+		echo "$(YELLOW)Please open http://localhost:8080 in your browser$(NC)"; \
+	fi
+
+kafka-consume: ## Consume messages from a topic (usage: make kafka-consume TOPIC=telco.raw.customers)
+	@if [ -z "$(TOPIC)" ]; then \
+		echo "$(RED)Error: TOPIC variable required$(NC)"; \
+		echo "Usage: make kafka-consume TOPIC=telco.raw.customers"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)Consuming from topic: $(TOPIC)$(NC)"
+	@echo "$(BLUE)Press Ctrl+C to stop$(NC)"
+	@docker exec -it telco-redpanda rpk topic consume $(TOPIC) --from-beginning
+
+kafka-produce: ## Produce test message to a topic (usage: make kafka-produce TOPIC=telco.raw.customers MSG='{"test":"data"}')
+	@if [ -z "$(TOPIC)" ]; then \
+		echo "$(RED)Error: TOPIC variable required$(NC)"; \
+		echo "Usage: make kafka-produce TOPIC=telco.raw.customers MSG='{\"test\":\"data\"}'"; \
+		exit 1; \
+	fi
+	@if [ -z "$(MSG)" ]; then \
+		echo "$(RED)Error: MSG variable required$(NC)"; \
+		echo "Usage: make kafka-produce TOPIC=telco.raw.customers MSG='{\"test\":\"data\"}'"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)Producing message to topic: $(TOPIC)$(NC)"
+	@echo "$(MSG)" | docker exec -i telco-redpanda rpk topic produce $(TOPIC)
+	@echo "$(GREEN)Message sent successfully!$(NC)"
+
+kafka-logs: ## Show Kafka/Redpanda logs
+	@echo "$(YELLOW)Showing Redpanda logs (last 50 lines)...$(NC)"
+	@docker compose -f docker-compose.kafka.yml logs --tail=50 redpanda
+
+kafka-logs-follow: ## Follow Kafka logs in real-time
+	@echo "$(YELLOW)Following Kafka logs (Ctrl+C to stop)...$(NC)"
+	@docker compose -f docker-compose.kafka.yml logs -f
+
+kafka-reset: ## Full reset - stop, remove volumes, restart, recreate topics
+	@echo "$(RED)WARNING: This will delete all Kafka data!$(NC)"
+	@read -p "Are you sure? [y/N]: " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo "$(YELLOW)Performing full Kafka reset...$(NC)"
+	$(MAKE) kafka-down-volumes
+	@sleep 2
+	$(MAKE) kafka-up
+	@echo "$(YELLOW)Waiting for Redpanda to be ready...$(NC)"
+	@sleep 10
+	$(MAKE) kafka-topics
+	@echo "$(GREEN)Kafka reset complete!$(NC)"
+
+kafka-test: ## Test Kafka setup (send and receive test message)
+	@echo "$(YELLOW)Testing Kafka setup...$(NC)"
+	@echo "$(BLUE)1. Sending test message...$(NC)"
+	@echo '{"customerID":"TEST-$(shell date +%s)","test":true,"timestamp":"$(shell date -u +%Y-%m-%dT%H:%M:%SZ)"}' | \
+		docker exec -i telco-redpanda rpk topic produce telco.raw.customers
+	@echo "$(GREEN)✓ Message sent$(NC)"
+	@sleep 1
+	@echo "$(BLUE)2. Consuming last message...$(NC)"
+	@docker exec telco-redpanda rpk topic consume telco.raw.customers --num 1 --offset -1
+	@echo "$(GREEN)✓ Kafka test successful!$(NC)"
+
 # Phony targets (targets that don't create files)
 .PHONY: help install install-dev setup-env freeze init-project check-config
 .PHONY: lint format type-check check test test-coverage test-inference
@@ -324,3 +439,5 @@ notebook-docs: ## Convert notebooks to documentation
 .PHONY: mlflow-ui mlflow-experiments mlflow-runs airflow-init airflow-webserver airflow-scheduler
 .PHONY: pipeline pipeline-test build package docker-build
 .PHONY: clean clean-artifacts clean-data reset status info docs notebook-docs
+.PHONY: kafka-up kafka-down kafka-down-volumes kafka-status kafka-topics kafka-list kafka-describe
+.PHONY: kafka-console kafka-consume kafka-produce kafka-logs kafka-logs-follow kafka-reset kafka-test
