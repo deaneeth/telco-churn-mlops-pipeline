@@ -1,0 +1,495 @@
+{
+  "analysis_date": "2025-10-10",
+  "project": "Telco Churn Prediction - Kafka Integration (Mini Project 2)",
+  "base_project": "Mini Project 1 - MLOps Pipeline",
+  "compliance_summary": {
+    "total_requirements": 25,
+    "covered": 5,
+    "partial": 3,
+    "missing": 17,
+    "coverage_percentage": "20%"
+  },
+  "requirements": {
+    "kafka_infrastructure": {
+      "category": "Infrastructure",
+      "items": [
+        {
+          "id": "INFRA-01",
+          "requirement": "Kafka broker setup (local development)",
+          "status": "missing",
+          "current_state": "No Kafka infrastructure exists. Project has Docker setup but no docker-compose.yml",
+          "gap": "Need docker-compose.yml with Kafka, Zookeeper, and optional Kafka UI",
+          "priority": "critical",
+          "effort": "medium"
+        },
+        {
+          "id": "INFRA-02",
+          "requirement": "Topic configuration: telco.raw.customers",
+          "status": "missing",
+          "current_state": "No Kafka topics defined",
+          "gap": "Need topic creation scripts or docker-compose auto-creation",
+          "priority": "critical",
+          "effort": "low"
+        },
+        {
+          "id": "INFRA-03",
+          "requirement": "Topic configuration: telco.churn.predictions",
+          "status": "missing",
+          "current_state": "No Kafka topics defined",
+          "gap": "Need topic creation scripts or docker-compose auto-creation",
+          "priority": "critical",
+          "effort": "low"
+        },
+        {
+          "id": "INFRA-04",
+          "requirement": "Topic configuration: telco.deadletter (optional)",
+          "status": "missing",
+          "current_state": "No dead letter queue pattern implemented",
+          "gap": "Need dead letter topic for invalid/failed messages",
+          "priority": "low",
+          "effort": "low"
+        }
+      ]
+    },
+    "producer_implementation": {
+      "category": "Producer Components (20 marks)",
+      "items": [
+        {
+          "id": "PROD-01",
+          "requirement": "producer.py script with streaming mode",
+          "status": "missing",
+          "current_state": "No Kafka producer exists. Has batch_predict.py for batch inference only",
+          "gap": "Need new src/streaming/producer.py with continuous event generation",
+          "priority": "critical",
+          "effort": "high",
+          "acceptance_criteria": [
+            "Reads from Telco CSV dataset",
+            "Randomly samples rows with synthetic event_ts",
+            "Publishes to telco.raw.customers topic",
+            "Configurable rate (--events-per-sec)",
+            "Runs continuously until stopped"
+          ]
+        },
+        {
+          "id": "PROD-02",
+          "requirement": "producer.py script with batch mode",
+          "status": "missing",
+          "current_state": "Has data loading (src/data/load_data.py) but no Kafka publishing",
+          "gap": "Need batch mode in producer.py to send CSV chunks to Kafka",
+          "priority": "critical",
+          "effort": "medium",
+          "acceptance_criteria": [
+            "Reads full CSV file",
+            "Sends messages in configurable chunks (--batch-size)",
+            "Publishes to telco.raw.customers topic",
+            "Handles large datasets efficiently"
+          ]
+        },
+        {
+          "id": "PROD-03",
+          "requirement": "Argparse configuration (--mode, --events-per-sec, --batch-size)",
+          "status": "missing",
+          "current_state": "No CLI argument parsing for streaming",
+          "gap": "Need argparse setup for producer modes and parameters",
+          "priority": "high",
+          "effort": "low"
+        },
+        {
+          "id": "PROD-04",
+          "requirement": "Checkpoint/resume mechanism to avoid duplicates",
+          "status": "missing",
+          "current_state": "No state management for streaming",
+          "gap": "Need file-based or Redis-based checkpoint system",
+          "priority": "medium",
+          "effort": "medium"
+        },
+        {
+          "id": "PROD-05",
+          "requirement": "Message schema with customerID as key and JSON value",
+          "status": "partial",
+          "current_state": "Dataset schema exists in config.py with all required fields",
+          "gap": "Need to add event_ts field and serialize to Kafka format",
+          "priority": "high",
+          "effort": "low"
+        }
+      ]
+    },
+    "consumer_implementation": {
+      "category": "Consumer Components (40 marks)",
+      "items": [
+        {
+          "id": "CONS-01",
+          "requirement": "consumer.py script with streaming mode",
+          "status": "missing",
+          "current_state": "No Kafka consumer exists. Has predict.py for single predictions",
+          "gap": "Need new src/streaming/consumer.py with continuous processing",
+          "priority": "critical",
+          "effort": "high",
+          "acceptance_criteria": [
+            "Reads from telco.raw.customers topic",
+            "Deserializes JSON messages",
+            "Runs ML model inference (loads from artifacts/models/)",
+            "Publishes results to telco.churn.predictions",
+            "Handles errors gracefully"
+          ]
+        },
+        {
+          "id": "CONS-02",
+          "requirement": "consumer.py script with batch mode",
+          "status": "partial",
+          "current_state": "Has batch_predict.py that processes CSV files",
+          "gap": "Need to adapt batch inference to consume from Kafka and publish results",
+          "priority": "critical",
+          "effort": "medium",
+          "acceptance_criteria": [
+            "Consumes defined offset/time window (e.g., 1000 records)",
+            "Runs batch predictions",
+            "Publishes to telco.churn.predictions",
+            "Outputs summary (churn % per contract type, top-K risky customers)"
+          ]
+        },
+        {
+          "id": "CONS-03",
+          "requirement": "Model integration (scikit-learn pipeline from MP1)",
+          "status": "covered",
+          "current_state": "Trained model exists at artifacts/models/sklearn_pipeline_mlflow.joblib",
+          "gap": "None - model ready to use",
+          "priority": "n/a",
+          "effort": "n/a"
+        },
+        {
+          "id": "CONS-04",
+          "requirement": "Feature transformation pipeline integration",
+          "status": "covered",
+          "current_state": "Full preprocessing pipeline in src/data/preprocess.py and saved in model",
+          "gap": "None - preprocessing embedded in pipeline",
+          "priority": "n/a",
+          "effort": "n/a"
+        },
+        {
+          "id": "CONS-05",
+          "requirement": "Output message schema with churn_probability and processed_ts",
+          "status": "partial",
+          "current_state": "Current predict.py returns prediction and probability",
+          "gap": "Need to add processed_ts and format for Kafka publishing",
+          "priority": "high",
+          "effort": "low"
+        },
+        {
+          "id": "CONS-06",
+          "requirement": "Batch summary analytics (churn % per segment, top-K risky)",
+          "status": "missing",
+          "current_state": "No aggregation or analytics on predictions",
+          "gap": "Need summary generation functions in consumer batch mode",
+          "priority": "medium",
+          "effort": "medium"
+        }
+      ]
+    },
+    "integration_reliability": {
+      "category": "Integration & Reliability (20 marks)",
+      "items": [
+        {
+          "id": "INTG-01",
+          "requirement": "End-to-end message flow: dataset → Kafka → predictions",
+          "status": "missing",
+          "current_state": "Current flow is CSV → preprocessing → model → CSV output",
+          "gap": "Need full Kafka integration for streaming flow",
+          "priority": "critical",
+          "effort": "high"
+        },
+        {
+          "id": "INTG-02",
+          "requirement": "Configuration management (topics, brokers, batch sizes)",
+          "status": "partial",
+          "current_state": "Has config.py and config.yaml for model config",
+          "gap": "Need Kafka-specific configuration section",
+          "priority": "high",
+          "effort": "low"
+        },
+        {
+          "id": "INTG-03",
+          "requirement": "Error handling and dead letter queue",
+          "status": "missing",
+          "current_state": "Basic error handling in API but no DLQ pattern",
+          "gap": "Need try-catch with DLQ publishing for invalid messages",
+          "priority": "medium",
+          "effort": "medium"
+        },
+        {
+          "id": "INTG-04",
+          "requirement": "Graceful shutdown and offset management",
+          "status": "missing",
+          "current_state": "No streaming infrastructure",
+          "gap": "Need signal handlers for clean shutdown and consumer group management",
+          "priority": "medium",
+          "effort": "medium"
+        }
+      ]
+    },
+    "testing_observability": {
+      "category": "Testing & Observability (10 marks)",
+      "items": [
+        {
+          "id": "TEST-01",
+          "requirement": "Unit tests for producer (streaming + batch)",
+          "status": "missing",
+          "current_state": "Comprehensive test suite exists (98 tests) but no Kafka tests",
+          "gap": "Need tests/test_kafka_producer.py with mock Kafka",
+          "priority": "high",
+          "effort": "medium"
+        },
+        {
+          "id": "TEST-02",
+          "requirement": "Unit tests for consumer (streaming + batch)",
+          "status": "missing",
+          "current_state": "Has inference tests but not for Kafka consumer",
+          "gap": "Need tests/test_kafka_consumer.py with mock Kafka",
+          "priority": "high",
+          "effort": "medium"
+        },
+        {
+          "id": "TEST-03",
+          "requirement": "Integration tests for end-to-end flow",
+          "status": "partial",
+          "current_state": "Has test_integration.py but no Kafka tests",
+          "gap": "Need Kafka integration tests with testcontainers or embedded Kafka",
+          "priority": "medium",
+          "effort": "high"
+        },
+        {
+          "id": "TEST-04",
+          "requirement": "Logs & screenshots of message flow",
+          "status": "missing",
+          "current_state": "Has logging infrastructure but no Kafka-specific logs",
+          "gap": "Need producer/consumer logs and Kafka UI screenshots",
+          "priority": "high",
+          "effort": "low"
+        },
+        {
+          "id": "TEST-05",
+          "requirement": "Monitoring and observability (metrics, dashboards)",
+          "status": "missing",
+          "current_state": "MLflow tracking exists but no streaming metrics",
+          "gap": "Need Kafka consumer lag monitoring, throughput metrics, error rates",
+          "priority": "low",
+          "effort": "medium"
+        }
+      ]
+    },
+    "documentation": {
+      "category": "Documentation & Repo Hygiene (10 marks)",
+      "items": [
+        {
+          "id": "DOC-01",
+          "requirement": "README updates with Kafka setup instructions",
+          "status": "covered",
+          "current_state": "Comprehensive README.md exists (1,336 lines)",
+          "gap": "Need to add Kafka section with setup, usage, and examples",
+          "priority": "high",
+          "effort": "low"
+        },
+        {
+          "id": "DOC-02",
+          "requirement": "Configuration documentation (topics, brokers, modes)",
+          "status": "missing",
+          "current_state": "Good documentation structure exists",
+          "gap": "Need Kafka configuration guide",
+          "priority": "medium",
+          "effort": "low"
+        },
+        {
+          "id": "DOC-03",
+          "requirement": "Usage examples for producer and consumer",
+          "status": "missing",
+          "current_state": "Has API usage examples",
+          "gap": "Need CLI examples for streaming and batch modes",
+          "priority": "medium",
+          "effort": "low"
+        }
+      ]
+    },
+    "bonus_airflow": {
+      "category": "Bonus: Airflow DAGs (+10 marks)",
+      "items": [
+        {
+          "id": "BONUS-01",
+          "requirement": "Streaming DAG with health check and long-running consumer",
+          "status": "partial",
+          "current_state": "Existing Airflow infrastructure with telco_churn_dag.py",
+          "gap": "Need new streaming_dag.py with health checks and consumer monitoring",
+          "priority": "low",
+          "effort": "high"
+        },
+        {
+          "id": "BONUS-02",
+          "requirement": "Batch DAG (hourly/daily: producer → consumer → summary)",
+          "status": "partial",
+          "current_state": "Existing batch processing DAG exists",
+          "gap": "Need to adapt for Kafka: trigger producer, wait, trigger consumer, generate summary",
+          "priority": "low",
+          "effort": "medium"
+        },
+        {
+          "id": "BONUS-03",
+          "requirement": "Airflow screenshots showing DAG execution",
+          "status": "covered",
+          "current_state": "Has 4 Airflow screenshots from MP1",
+          "gap": "Need new screenshots for Kafka DAGs",
+          "priority": "low",
+          "effort": "low"
+        }
+      ]
+    }
+  },
+  "reusable_components": {
+    "from_mp1": [
+      {
+        "component": "ML Model",
+        "file": "artifacts/models/sklearn_pipeline_mlflow.joblib",
+        "usage": "Load in consumer for predictions",
+        "status": "ready"
+      },
+      {
+        "component": "Feature Engineering",
+        "file": "src/data/preprocess.py",
+        "usage": "Embedded in model pipeline, no separate call needed",
+        "status": "ready"
+      },
+      {
+        "component": "Prediction Logic",
+        "file": "src/inference/predict.py",
+        "usage": "Adapt predict_from_dict() for Kafka messages",
+        "status": "ready"
+      },
+      {
+        "component": "Batch Inference",
+        "file": "src/inference/batch_predict.py",
+        "usage": "Template for batch consumer mode",
+        "status": "ready"
+      },
+      {
+        "component": "Configuration",
+        "file": "config.py, config.yaml",
+        "usage": "Extend with Kafka config section",
+        "status": "ready"
+      },
+      {
+        "component": "Testing Infrastructure",
+        "file": "tests/, pytest.ini",
+        "usage": "Add Kafka tests to existing suite",
+        "status": "ready"
+      },
+      {
+        "component": "Docker",
+        "file": "Dockerfile",
+        "usage": "Extend docker-compose.yml for Kafka + app",
+        "status": "ready"
+      },
+      {
+        "component": "Airflow",
+        "file": "dags/telco_churn_dag.py",
+        "usage": "Template for Kafka DAGs",
+        "status": "ready"
+      }
+    ]
+  },
+  "dependencies_needed": {
+    "python_packages": [
+      "kafka-python>=2.0.0",
+      "confluent-kafka>=2.0.0",
+      "avro-python3>=1.10.0 (optional for Avro serialization)"
+    ],
+    "infrastructure": [
+      "Apache Kafka (via Docker)",
+      "Zookeeper (via Docker)",
+      "Kafka UI (optional, for monitoring)"
+    ]
+  },
+  "implementation_phases": {
+    "phase_1_infrastructure": {
+      "priority": "critical",
+      "tasks": [
+        "Create docker-compose.yml with Kafka, Zookeeper, Kafka UI",
+        "Add topic creation scripts",
+        "Update requirements.txt with kafka-python",
+        "Test Kafka connectivity"
+      ],
+      "estimated_effort": "4 hours"
+    },
+    "phase_2_producer": {
+      "priority": "critical",
+      "tasks": [
+        "Create src/streaming/producer.py",
+        "Implement streaming mode (continuous sampling)",
+        "Implement batch mode (CSV chunks)",
+        "Add argparse configuration",
+        "Implement checkpoint mechanism",
+        "Add logging"
+      ],
+      "estimated_effort": "8 hours"
+    },
+    "phase_3_consumer": {
+      "priority": "critical",
+      "tasks": [
+        "Create src/streaming/consumer.py",
+        "Implement streaming mode (continuous inference)",
+        "Implement batch mode (windowed processing)",
+        "Integrate model loading and prediction",
+        "Add summary analytics for batch mode",
+        "Publish to predictions topic",
+        "Add error handling and DLQ"
+      ],
+      "estimated_effort": "10 hours"
+    },
+    "phase_4_testing": {
+      "priority": "high",
+      "tasks": [
+        "Create tests/test_kafka_producer.py",
+        "Create tests/test_kafka_consumer.py",
+        "Add integration tests",
+        "Generate logs and screenshots",
+        "Test end-to-end flow"
+      ],
+      "estimated_effort": "6 hours"
+    },
+    "phase_5_documentation": {
+      "priority": "high",
+      "tasks": [
+        "Update README with Kafka section",
+        "Add configuration documentation",
+        "Add usage examples",
+        "Update architecture diagrams"
+      ],
+      "estimated_effort": "3 hours"
+    },
+    "phase_6_bonus_airflow": {
+      "priority": "low",
+      "tasks": [
+        "Create dags/streaming_dag.py",
+        "Create dags/batch_kafka_dag.py",
+        "Add health checks and monitoring",
+        "Capture screenshots"
+      ],
+      "estimated_effort": "6 hours"
+    }
+  },
+  "total_estimated_effort": "37 hours",
+  "risk_assessment": {
+    "low_risk": [
+      "Infrastructure setup (well-documented)",
+      "Model integration (already working)",
+      "Configuration management (patterns exist)"
+    ],
+    "medium_risk": [
+      "Checkpoint mechanism (needs design decision)",
+      "Error handling and DLQ (needs testing)",
+      "Batch analytics (needs aggregation logic)"
+    ],
+    "high_risk": [
+      "Streaming mode correctness (continuous operation)",
+      "Performance at scale (needs load testing)",
+      "Integration testing (requires testcontainers setup)"
+    ]
+  }
+}
