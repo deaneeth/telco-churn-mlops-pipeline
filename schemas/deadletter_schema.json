@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/telco-deadletter.schema.json",
+  "title": "Telco Dead Letter Queue Message",
+  "description": "Schema for invalid messages routed to telco.deadletter topic",
+  "type": "object",
+  "required": [
+    "original_message",
+    "error_type",
+    "error_message",
+    "source_topic",
+    "failed_ts"
+  ],
+  "properties": {
+    "original_message": {
+      "type": "object",
+      "description": "The original message that failed processing"
+    },
+    "error_type": {
+      "type": "string",
+      "description": "Type of error encountered",
+      "enum": ["validation_error", "inference_error", "processing_error", "unknown_error"]
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Detailed error message"
+    },
+    "validation_errors": {
+      "type": "array",
+      "description": "List of validation errors (if validation failed)",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_topic": {
+      "type": "string",
+      "description": "Original Kafka topic",
+      "examples": ["telco.raw.customers"]
+    },
+    "failed_ts": {
+      "type": "string",
+      "description": "Timestamp when error occurred (ISO 8601 UTC)",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z?$"
+    },
+    "consumer_group": {
+      "type": "string",
+      "description": "Consumer group that encountered the error (optional)"
+    },
+    "retry_count": {
+      "type": "integer",
+      "description": "Number of retry attempts (optional)",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}
