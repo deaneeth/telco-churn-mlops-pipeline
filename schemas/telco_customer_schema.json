@@ -1,0 +1,168 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/telco-customer-event.schema.json",
+  "title": "Telco Customer Event",
+  "description": "Schema for telco customer churn prediction streaming events",
+  "type": "object",
+  "required": [
+    "customerID",
+    "gender",
+    "SeniorCitizen",
+    "Partner",
+    "Dependents",
+    "tenure",
+    "PhoneService",
+    "MultipleLines",
+    "InternetService",
+    "OnlineSecurity",
+    "OnlineBackup",
+    "DeviceProtection",
+    "TechSupport",
+    "StreamingTV",
+    "StreamingMovies",
+    "Contract",
+    "PaperlessBilling",
+    "PaymentMethod",
+    "MonthlyCharges",
+    "TotalCharges",
+    "Churn",
+    "event_ts"
+  ],
+  "properties": {
+    "customerID": {
+      "type": "string",
+      "description": "Unique customer identifier",
+      "pattern": "^[0-9]{4}-[A-Z]{5}$",
+      "examples": ["7590-VHVEG", "1345-ZUKID"]
+    },
+    "gender": {
+      "type": "string",
+      "description": "Customer gender",
+      "enum": ["Male", "Female"]
+    },
+    "SeniorCitizen": {
+      "type": "integer",
+      "description": "Whether customer is a senior citizen (0=No, 1=Yes)",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "Partner": {
+      "type": "string",
+      "description": "Whether customer has a partner",
+      "enum": ["Yes", "No"]
+    },
+    "Dependents": {
+      "type": "string",
+      "description": "Whether customer has dependents",
+      "enum": ["Yes", "No"]
+    },
+    "tenure": {
+      "type": "integer",
+      "description": "Number of months customer has stayed with the company",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "PhoneService": {
+      "type": "string",
+      "description": "Whether customer has phone service",
+      "enum": ["Yes", "No"]
+    },
+    "MultipleLines": {
+      "type": "string",
+      "description": "Whether customer has multiple phone lines",
+      "enum": ["Yes", "No", "No phone service"]
+    },
+    "InternetService": {
+      "type": "string",
+      "description": "Type of internet service",
+      "enum": ["DSL", "Fiber optic", "No"]
+    },
+    "OnlineSecurity": {
+      "type": "string",
+      "description": "Whether customer has online security",
+      "enum": ["Yes", "No", "No internet service"]
+    },
+    "OnlineBackup": {
+      "type": "string",
+      "description": "Whether customer has online backup",
+      "enum": ["Yes", "No", "No internet service"]
+    },
+    "DeviceProtection": {
+      "type": "string",
+      "description": "Whether customer has device protection",
+      "enum": ["Yes", "No", "No internet service"]
+    },
+    "TechSupport": {
+      "type": "string",
+      "description": "Whether customer has tech support",
+      "enum": ["Yes", "No", "No internet service"]
+    },
+    "StreamingTV": {
+      "type": "string",
+      "description": "Whether customer has streaming TV",
+      "enum": ["Yes", "No", "No internet service"]
+    },
+    "StreamingMovies": {
+      "type": "string",
+      "description": "Whether customer has streaming movies",
+      "enum": ["Yes", "No", "No internet service"]
+    },
+    "Contract": {
+      "type": "string",
+      "description": "Type of contract",
+      "enum": ["Month-to-month", "One year", "Two year"]
+    },
+    "PaperlessBilling": {
+      "type": "string",
+      "description": "Whether customer has paperless billing",
+      "enum": ["Yes", "No"]
+    },
+    "PaymentMethod": {
+      "type": "string",
+      "description": "Customer payment method",
+      "enum": [
+        "Electronic check",
+        "Mailed check",
+        "Bank transfer (automatic)",
+        "Credit card (automatic)"
+      ]
+    },
+    "MonthlyCharges": {
+      "type": "number",
+      "description": "Monthly charges in dollars",
+      "minimum": 0,
+      "maximum": 200
+    },
+    "TotalCharges": {
+      "type": ["number", "string"],
+      "description": "Total charges in dollars (can be string for legacy compatibility or null for new customers)",
+      "oneOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9]+(\\.[0-9]+)?$"
+        },
+        {
+          "type": "string",
+          "pattern": "^\\s*$"
+        }
+      ]
+    },
+    "Churn": {
+      "type": "string",
+      "description": "Whether customer churned",
+      "enum": ["Yes", "No"]
+    },
+    "event_ts": {
+      "type": "string",
+      "description": "Event timestamp in ISO 8601 format (UTC)",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z?$",
+      "examples": ["2025-10-03T04:00:00Z", "2025-10-11T14:23:45.123456Z"]
+    }
+  },
+  "additionalProperties": false
+}

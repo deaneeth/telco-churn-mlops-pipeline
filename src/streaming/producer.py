@@ -34,6 +34,19 @@ import pandas as pd
 from kafka import KafkaProducer
 from kafka.errors import KafkaError, NoBrokersAvailable
 
+# Import schema validator (optional, only if validation is enabled)
+try:
+    from .schema_validator import SchemaValidator
+    VALIDATION_AVAILABLE = True
+except ImportError as e:
+    try:
+        # Fallback to absolute import
+        from src.streaming.schema_validator import SchemaValidator
+        VALIDATION_AVAILABLE = True
+    except ImportError:
+        VALIDATION_AVAILABLE = False
+        SchemaValidator = None
+
 
 # Configuration
 DEFAULT_BROKER = "localhost:19092"
@@ -202,9 +215,10 @@ def publish_message(
     key: str,
     message: Dict[str, Any],
     logger: logging.Logger,
-    dry_run: bool = False
-) -> bool:
-    """Publish message to Kafka topic.
+    dry_run: bool = False,
+    validator: Any = None
+) -> tuple[bool, Optional[list[str]]]:
+    """Publish message to Kafka topic with optional validation.
     
     Args:
         producer: KafkaProducer instance (or None in dry-run)
@@ -213,13 +227,29 @@ def publish_message(
         message: Message payload
         logger: Logger instance
         dry_run: If True, only log without publishing
+        validator: Optional SchemaValidator for message validation
         
     Returns:
-        True if successful, False otherwise
+        Tuple of (success: bool, validation_errors: Optional[list])
+        - success: True if message was published (or would be in dry-run)
+        - validation_errors: List of validation errors, or None if valid/not validated
     """
+    # Validate message if validator is provided
+    if validator is not None:
+        is_valid, errors = validator.validate(message)
+        if not is_valid:
+            logger.warning(
+                f"Message validation failed for key {key}: {len(errors)} error(s)"
+            )
+            for error in errors[:3]:  # Log first 3 errors
+                logger.debug(f"  - {error}")
+            if len(errors) > 3:
+                logger.debug(f"  ... and {len(errors) - 3} more errors")
+            return False, errors
+    
     if dry_run:
         logger.debug(f"[DRY-RUN] Would publish to {topic} | Key: {key} | Message: {json.dumps(message)[:100]}...")
-        return True
+        return True, None
     
     try:
         future = producer.send(topic, key=key, value=message)
@@ -230,14 +260,14 @@ def publish_message(
             f"Published to {topic} | Partition: {record_metadata.partition} | "
             f"Offset: {record_metadata.offset} | Key: {key}"
         )
-        return True
+        return True, None
         
     except KafkaError as e:
         logger.error(f"Kafka error publishing message: {e}")
-        return False
+        return False, None
     except Exception as e:
         logger.error(f"Unexpected error publishing message: {e}")
-        return False
+        return False, None
 
 
 def load_checkpoint(checkpoint_file: str, logger: logging.Logger) -> Dict[str, Any]:
@@ -301,7 +331,8 @@ def streaming_mode(
     topic: str,
     events_per_sec: float,
     logger: logging.Logger,
-    dry_run: bool = False
+    dry_run: bool = False,
+    validator: Any = None
 ) -> None:
     """Run producer in streaming mode (continuous random sampling).
     
@@ -312,15 +343,18 @@ def streaming_mode(
         events_per_sec: Target event rate (events/second)
         logger: Logger instance
         dry_run: If True, simulate without publishing
+        validator: Optional SchemaValidator for message validation
     """
     logger.info(f"Starting STREAMING mode: {events_per_sec} events/sec to topic '{topic}'")
     logger.info(f"Dataset size: {len(df)} customers")
     logger.info(f"Mode: {'DRY-RUN' if dry_run else 'LIVE'}")
+    logger.info(f"Validation: {'ENABLED' if validator else 'DISABLED'}")
     logger.info("Press Ctrl+C to stop gracefully...")
     
     interval = 1.0 / events_per_sec
     total_sent = 0
     total_failed = 0
+    validation_failed = 0
     start_time = time.time()
     
     try:
@@ -332,20 +366,23 @@ def streaming_mode(
             # Convert to message
             message = customer_to_message(customer, add_timestamp=True)
             
-            # Publish
-            success = publish_message(producer, topic, customer_id, message, logger, dry_run)
+            # Publish with validation
+            success, errors = publish_message(producer, topic, customer_id, message, logger, dry_run, validator)
             
             if success:
                 total_sent += 1
             else:
                 total_failed += 1
+                if errors is not None:  # Validation failure
+                    validation_failed += 1
             
             # Log progress every 100 messages
             if total_sent % 100 == 0:
                 elapsed = time.time() - start_time
                 actual_rate = total_sent / elapsed if elapsed > 0 else 0
                 logger.info(
-                    f"Progress: {total_sent} sent, {total_failed} failed | "
+                    f"Progress: {total_sent} sent, {total_failed} failed "
+                    f"(validation: {validation_failed}) | "
                     f"Actual rate: {actual_rate:.2f} events/sec"
                 )
             
@@ -361,6 +398,8 @@ def streaming_mode(
         logger.info("=" * 60)
         logger.info(f"Total messages sent: {total_sent}")
         logger.info(f"Total failures: {total_failed}")
+        if validator:
+            logger.info(f"Validation failures: {validation_failed}")
         logger.info(f"Duration: {elapsed:.2f} seconds")
         logger.info(f"Average rate: {total_sent / elapsed:.2f} events/sec")
         logger.info("=" * 60)
@@ -373,7 +412,8 @@ def batch_mode(
     batch_size: int,
     checkpoint_file: str,
     logger: logging.Logger,
-    dry_run: bool = False
+    dry_run: bool = False,
+    validator: Any = None
 ) -> None:
     """Run producer in batch mode (sequential CSV processing).
     
@@ -385,10 +425,12 @@ def batch_mode(
         checkpoint_file: Path to checkpoint file for resume
         logger: Logger instance
         dry_run: If True, simulate without publishing
+        validator: Optional SchemaValidator for message validation
     """
     logger.info(f"Starting BATCH mode: {batch_size} records/batch to topic '{topic}'")
     logger.info(f"Dataset size: {len(df)} customers")
     logger.info(f"Mode: {'DRY-RUN' if dry_run else 'LIVE'}")
+    logger.info(f"Validation: {'ENABLED' if validator else 'DISABLED'}")
     logger.info(f"Checkpoint file: {checkpoint_file}")
     
     # Load checkpoint
@@ -400,6 +442,7 @@ def batch_mode(
     
     total_sent = 0
     total_failed = 0
+    validation_failed = 0
     start_time = time.time()
     last_offset = checkpoint.get('last_offset', 0)
     
@@ -422,17 +465,22 @@ def batch_mode(
                 customer_id = str(customer['customerID'])
                 message = customer_to_message(customer, add_timestamp=True)
                 
-                success = publish_message(producer, topic, customer_id, message, logger, dry_run)
+                success, errors = publish_message(producer, topic, customer_id, message, logger, dry_run, validator)
                 
                 if success:
                     total_sent += 1
                 else:
                     total_failed += 1
+                    if errors is not None:
+                        validation_failed += 1
             
             # Save checkpoint after each batch
             save_checkpoint(checkpoint_file, chunk_end, last_offset + total_sent, logger)
             
-            logger.info(f"Batch complete: {total_sent} sent, {total_failed} failed")
+            logger.info(
+                f"Batch complete: {total_sent} sent, {total_failed} failed "
+                f"(validation: {validation_failed})"
+            )
             
             # Small delay between batches
             time.sleep(0.1)
@@ -451,6 +499,8 @@ def batch_mode(
         logger.info("=" * 60)
         logger.info(f"Total messages sent: {total_sent}")
         logger.info(f"Total failures: {total_failed}")
+        if validator:
+            logger.info(f"Validation failures: {validation_failed}")
         logger.info(f"Duration: {elapsed:.2f} seconds")
         logger.info(f"Average rate: {total_sent / elapsed:.2f} records/sec")
         logger.info("=" * 60)
@@ -543,6 +593,12 @@ Examples:
     )
     
     parser.add_argument(
+        '--validate',
+        action='store_true',
+        help='Enable message validation against JSON schema before publishing'
+    )
+    
+    parser.add_argument(
         '--log-level',
         type=str,
         default='INFO',
@@ -573,11 +629,26 @@ def main():
     logger.info(f"Broker: {args.broker}")
     logger.info(f"Dataset: {args.dataset_path}")
     logger.info(f"Dry-run: {args.dry_run}")
+    logger.info(f"Validation: {args.validate}")
     logger.info("=" * 60)
     
     producer = None
+    validator = None
     
     try:
+        # Initialize validator if requested
+        if args.validate:
+            if not VALIDATION_AVAILABLE:
+                logger.error("Validation requested but jsonschema library not available")
+                logger.error("Install with: pip install jsonschema>=4.0.0")
+                sys.exit(1)
+            try:
+                validator = SchemaValidator()
+                logger.info("Schema validator initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize schema validator: {e}")
+                sys.exit(1)
+        
         # Load dataset
         df = load_dataset(args.dataset_path, logger)
         
@@ -592,7 +663,8 @@ def main():
                 topic=args.topic,
                 events_per_sec=args.events_per_sec,
                 logger=logger,
-                dry_run=args.dry_run
+                dry_run=args.dry_run,
+                validator=validator
             )
         elif args.mode == 'batch':
             batch_mode(
@@ -602,7 +674,8 @@ def main():
                 batch_size=args.batch_size,
                 checkpoint_file=args.checkpoint_file,
                 logger=logger,
-                dry_run=args.dry_run
+                dry_run=args.dry_run,
+                validator=validator
             )
         
     except FileNotFoundError as e:
