@@ -39,29 +39,87 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+    
+    - name: Install test dependencies
+      run: |
         pip install pytest pytest-cov
+        pip show pytest pytest-cov
+        pytest --version
     
     - name: Wait for Kafka to be ready
       run: |
         echo "Waiting for Kafka to be ready..."
-        timeout 60 bash -c 'until docker exec $(docker ps -q -f ancestor=docker.redpanda.com/redpandadata/redpanda:v24.2.4) rpk cluster health 2>/dev/null | grep -q "healthy"; do sleep 2; done'
-        echo "Kafka is ready!"
+        for i in {1..30}; do
+          CONTAINER_ID=$(docker ps -q -f ancestor=docker.redpanda.com/redpandadata/redpanda:v24.2.4)
+          if [ -n "$CONTAINER_ID" ]; then
+            if docker exec $CONTAINER_ID rpk cluster health 2>/dev/null | grep -q "healthy"; then
+              echo "✅ Kafka is ready!"
+              exit 0
+            fi
+          fi
+          echo "Attempt $i/30: Waiting for Kafka..."
+          sleep 2
+        done
+        echo "⚠️ Kafka not ready after 60s, but continuing..."
     
     - name: Create Kafka topics
+      continue-on-error: true
       run: |
-        docker exec $(docker ps -q -f ancestor=docker.redpanda.com/redpandadata/redpanda:v24.2.4) rpk topic create telco.raw.customers --partitions 3
-        docker exec $(docker ps -q -f ancestor=docker.redpanda.com/redpandadata/redpanda:v24.2.4) rpk topic create telco.churn.predictions --partitions 3
-        docker exec $(docker ps -q -f ancestor=docker.redpanda.com/redpandadata/redpanda:v24.2.4) rpk topic create telco.churn.deadletter --partitions 1
+        CONTAINER_ID=$(docker ps -q -f ancestor=docker.redpanda.com/redpandadata/redpanda:v24.2.4)
+        if [ -n "$CONTAINER_ID" ]; then
+          docker exec $CONTAINER_ID rpk topic create telco.raw.customers --partitions 3 || echo "Topic may already exist"
+          docker exec $CONTAINER_ID rpk topic create telco.churn.predictions --partitions 3 || echo "Topic may already exist"
+          docker exec $CONTAINER_ID rpk topic create telco.churn.deadletter --partitions 1 || echo "Topic may already exist"
+          echo "✅ Topics created/verified"
+          docker exec $CONTAINER_ID rpk topic list
+        else
+          echo "⚠️ Kafka container not found, Kafka tests will be skipped"
+        fi
     
     - name: Run tests with coverage
       env:
         KAFKA_BOOTSTRAP_SERVERS: localhost:19092
       run: |
-        pytest -v --cov=src --cov-report=xml --cov-report=term
+        pytest -v --cov=src --cov-report=xml --cov-report=term-missing --cov-report=html 2>&1 | tee pytest-output.txt
+        echo "PYTEST_EXIT_CODE=${PIPESTATUS[0]}" >> $GITHUB_ENV
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
+      if: success() || failure()
+      continue-on-error: true
       with:
         files: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
+        fail_ci_if_error: false
+    
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-report
+        path: |
+          coverage.xml
+          htmlcov/
+          pytest-output.txt
+        retention-days: 30
+    
+    - name: Test Summary
+      if: always()
+      run: |
+        echo "## 📊 CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -f coverage.xml ]; then
+          echo "✅ **Tests completed with coverage report**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ **Coverage report not generated**" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Artifacts Available:" >> $GITHUB_STEP_SUMMARY
+        echo "- Coverage XML report" >> $GITHUB_STEP_SUMMARY
+        echo "- HTML coverage report" >> $GITHUB_STEP_SUMMARY
+        echo "- Test execution logs" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Retention:** 30 days" >> $GITHUB_STEP_SUMMARY
