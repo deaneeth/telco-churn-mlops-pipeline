@@ -146,307 +146,208 @@ This project demonstrates key MLOps and production ML skills:
 
 ---
 
-##  📁 Project Structure
-
-</tr>├── Makefile                           # Automation commands
-
-</table>│
-
-├── data/                              # Data storage
-
----│   ├── raw/                           # Raw dataset
-
-│   │   └── Telco-Customer-Churn.csv   # 7,043 customer records
-
-##  🏗️ Architecture│   └── processed/                     # Processed data
-
-│       ├── X_train_processed.npz      # Training features (5,634)
-
-```│       ├── X_test_processed.npz       # Test features (1,409)
-
-┌─────────────────────────────────────────────────────────────────────────┐│       ├── y_train.npz                # Training labels
-
-│                        PRODUCTION MLOPS PIPELINE                         ││       ├── y_test.npz                 # Test labels
-
-└─────────────────────────────────────────────────────────────────────────┘│       ├── sample.csv                 # Sample data for inference
-
-│       ├── feature_names.json         # Feature metadata
-
- 📥 DATA INGESTION                🧪 ML TRAINING                🚀 DEPLOYMENT│       └── columns.json               # Column definitions
-
- ┌────────────────┐              ┌──────────────┐             ┌─────────────┐│
-
- │  Telco CSV     │──────────▶   │ Preprocessing│────────▶    │  MLflow     │├── notebooks/                         # Jupyter notebooks
-
- │  7,043 rows    │              │ 19 → 45 feat │             │  Registry   ││   ├── 01_data_exploration.ipynb      # EDA (752 KB)
-
- └────────────────┘              └──────────────┘             └─────────────┘│   ├── 02_feature_engineering.ipynb   # Feature engineering
-
-                                         │                            ││   ├── 03_model_dev_experiments.ipynb # Model experimentation
-
-                                         ▼                            ▼│   └── 04_performance_benchmarking_comprehensive.ipynb
-
-                                 ┌──────────────┐             ┌─────────────┐│
-
-                                 │ Model Train  │────────▶    │  REST API   │├── src/                               # Source code
-
-                                 │ GB Classifier│             │  Flask:5000 ││   ├── __init__.py
-
-                                 └──────────────┘             └─────────────┘│   ├── data/                          # Data processing
-
-│   │   ├── __init__.py
-
-🌊 KAFKA STREAMING               🔄 ORCHESTRATION             📊 MONITORING│   │   ├── load_data.py               # Data loading utilities
-
-┌────────────────┐              ┌──────────────┐             ┌─────────────┐│   │   ├── preprocess.py              # Feature engineering pipeline
-
-│   Producer     │─────JSON────▶│  Kafka Topic │───────▶     │  Airflow    ││   │   └── eda.py                     # Exploratory data analysis
-
-│ Batch/Stream   │              │ telco.raw.*  │             │  DAG Runs   ││   ├── models/                        # Model training & evaluation
-
-└────────────────┘              └──────────────┘             └─────────────┘│   │   ├── __init__.py
-
-                                        │                            ││   │   ├── train.py                   # Scikit-learn training
-
-                                        ▼                            ▼│   │   ├── train_mlflow.py            # MLflow-tracked training
-
-                                ┌──────────────┐             ┌─────────────┐│   │   └── evaluate.py                # Model evaluation
-
-                                │   Consumer   │────────▶    │  Logs &     ││   ├── streaming/                     # Kafka streaming (MP2)
-
-                                │ ML Inference │             │  Metrics    ││   │   ├── producer.py                # Producer (streaming + batch)
-
-                                └──────────────┘             └─────────────┘│   │   └── consumer.py                # Consumer with ML inference
-
-```│   ├── inference/                     # Prediction pipelines
-
-│   │   ├── __init__.py
-
-### 📊 Pipeline Flow│   │   ├── predict.py                 # Real-time prediction
-
-│   │   └── batch_predict.py           # Batch inference
-
-```│   ├── api/                           # REST API
-
-CSV Data → Validation → Preprocessing → Model Training → MLflow Logging│   │   ├── __init__.py
-
-                                              ↓│   │   └── app.py                     # Flask application
-
-                                     Kafka Producer (Streaming)│   └── utils/                         # Utilities
-
-                                              ↓│       ├── __init__.py
-
-                                    Kafka Topics (telco.raw.*)│       └── logger.py                  # Logging configuration
-
-                                              ↓│
-
-                                     Kafka Consumer (Inference)├── pipelines/                         # ML pipelines
-
-                                              ↓│   ├── sklearn_pipeline.py            # Scikit-learn pipeline
-
-                                    Airflow Orchestration│   └── spark_pipeline.py              # PySpark distributed pipeline
-
-                                              ↓│
-
-                                     REST API → Predictions├── dags/                              # Airflow DAGs
-
-```│   └── telco_churn_dag.py             # Main orchestration DAG
-
-│
-
----├── airflow_home/                      # Airflow home (MP2)
-
-│   ├── airflow.cfg                    # Airflow settings
-
-##  🛠️ Tech Stack│   ├── airflow.db                     # SQLite database
-
-│   └── dags/                          # Kafka DAGs
-
-<div align="center">│       ├── kafka_batch_dag.py         # Batch pipeline
-
-│       ├── kafka_streaming_dag.py     # Streaming pipeline
-
-| Category | Technologies |│       └── kafka_summary.py           # Summary generator
-
-|----------|-------------|│
-
-| **ML & Data Science** | ![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python) ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.6-orange?logo=scikit-learn) ![PySpark](https://img.shields.io/badge/PySpark-4.0-E25A1C?logo=apache-spark) ![pandas](https://img.shields.io/badge/pandas-2.2-150458?logo=pandas) ![NumPy](https://img.shields.io/badge/NumPy-2.2-013243?logo=numpy) |├── scripts/                           # Automation scripts (MP2)
-
-| **MLOps & Tracking** | ![MLflow](https://img.shields.io/badge/MLflow-2.17-0194E2?logo=mlflow) ![DVC](https://img.shields.io/badge/DVC-Enabled-945DD6) ![pytest](https://img.shields.io/badge/pytest-8.3-0A9EDC?logo=pytest) |│   ├── kafka_create_topics.sh         # Topic creation
-
-| **Streaming & Messaging** | ![Kafka](https://img.shields.io/badge/Kafka-3.9-black?logo=apache-kafka) ![kafka-python](https://img.shields.io/badge/kafka--python-2.0-black) |│   ├── run_kafka_demo.sh              # 60-second demo
-
-| **Orchestration** | ![Airflow](https://img.shields.io/badge/Airflow-3.0-017CEE?logo=apache-airflow) |│   └── dump_kafka_topics.sh           # Sample extractor
-
-| **Deployment & DevOps** | ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker) ![Flask](https://img.shields.io/badge/Flask-3.1-000000?logo=flask) ![Gunicorn](https://img.shields.io/badge/Gunicorn-23.0-499848?logo=gunicorn) |│
-
-| **Development Tools** | ![Jupyter](https://img.shields.io/badge/Jupyter-Notebooks-F37626?logo=jupyter) ![YAML](https://img.shields.io/badge/YAML-Config-CB171E) ![Makefile](https://img.shields.io/badge/Makefile-Automation-427819) |├── logs/                              # Execution logs (MP2)
-
-│   ├── kafka_producer.log             # Producer logs
-
-</div>│   ├── kafka_producer_demo.log        # Demo producer
-
-│   ├── kafka_consumer.log             # Consumer logs
-
----│   └── kafka_consumer_demo.log        # Demo consumer
-
-│
-
-##  📁 Project Structure├── tests/                             # Test suite (226 tests)
-
-│   ├── __init__.py
-
-<details>│   ├── conftest.py                    # pytest fixtures
-
-<summary><b>Click to expand full folder tree</b></summary>│   ├── test_data_validation.py        # Data validation (18 tests)
-
-│   ├── test_preprocessing.py          # Preprocessing (12 tests)
-
-```│   ├── test_training.py               # Training (14 tests)
-
-📦 telco-churn-mlops-pipeline/│   ├── test_evaluation.py             # Evaluation (10 tests)
-
-┣ 📂 src/                          # Source code│   ├── test_inference.py              # Inference (19 tests)
-
-┃ ┣ 📂 data/                       # Data processing│   └── test_integration.py            # Integration (24 tests)
-
-┃ ┃ ┣ 📄 load_data.py              # CSV ingestion│
-
-┃ ┃ ┣ 📄 preprocess.py             # Feature engineering├── artifacts/                         # Model artifacts
-
-┃ ┃ ┗ 📄 eda.py                    # Exploratory analysis│   ├── models/                        # Trained models
-
-┃ ┣ 📂 models/                     # ML training│   │   ├── sklearn_pipeline.joblib            # 200 KB
-
-┃ ┃ ┣ 📄 train.py                  # Scikit-learn training│   │   ├── sklearn_pipeline_mlflow.joblib     # 200 KB
-
-┃ ┃ ┣ 📄 train_mlflow.py           # MLflow-tracked training│   │   ├── preprocessor.joblib                # 9 KB
-
-┃ ┃ ┗ 📄 evaluate.py               # Model evaluation│   │   ├── feature_names.json
-
-┃ ┣ 📂 streaming/                  # Kafka integration│   │   ├── pipeline_metadata.json             # Spark metadata
-
-┃ ┃ ┣ 📄 producer.py               # Batch + streaming modes│   │   └── feature_importances.json
-
-┃ ┃ ┗ 📄 consumer.py               # ML inference consumer│   ├── metrics/                       # Performance metrics
-
-┃ ┣ 📂 inference/                  # Predictions│   │   ├── sklearn_metrics.json
-
-┃ ┃ ┣ 📄 predict.py                # Real-time inference│   │   ├── sklearn_metrics_mlflow.json
-
-┃ ┃ ┗ 📄 batch_predict.py          # Batch processing│   │   └── spark_rf_metrics.json
-
-┃ ┣ 📂 api/                        # REST API│   ├── predictions/                   # Batch predictions
-
-┃ ┃ ┗ 📄 app.py                    # Flask application│   │   └── batch_preds.csv            # 100 predictions
-
-┃ ┗ 📂 utils/                      # Utilities│   └── logs/                          # Execution logs
-
-┃   ┗ 📄 logger.py                 # Logging config│
-
-┣ 📂 pipelines/                    # ML pipelines├── mlruns/                            # MLflow tracking
-
-┃ ┣ 📄 sklearn_pipeline.py         # Scikit-learn workflow│   ├── 489170853378269866/            # Experiment 1
-
-┃ ┗ 📄 spark_pipeline.py           # PySpark distributed│   ├── 553769178175916907/            # Experiment 2
-
-┣ 📂 dags/                         # Airflow DAGs│   ├── 703421223398572649/            # Experiment 3
-
-┃ ┣ 📄 kafka_batch_dag.py          # Batch pipeline│   ├── 880740792170238246/            # Experiment 4
-
-┃ ┣ 📄 kafka_streaming_dag.py      # Streaming pipeline│   ├── 979951295626381837/            # Experiment 5
-
-┃ ┗ 📄 telco_churn_dag.py          # Main orchestration│   └── models/                        # Model registry
-
-┣ 📂 data/                         # Datasets│
-
-┃ ┣ 📂 raw/                        # Original CSV (7,043 rows)├── airflow_home/                      # Airflow configuration
-
-┃ ┗ 📂 processed/                  # Engineered features│   ├── airflow.cfg                    # Airflow settings
-
-┣ 📂 artifacts/                    # Model outputs│   ├── airflow.db                     # SQLite database (1.5 MB)
-
-┃ ┣ 📂 models/                     # Trained models (.joblib)│   └── dags/                          # DAG symlink
-
-┃ ┣ 📂 metrics/                    # Performance metrics (.json)│
-
-┃ ┗ 📂 predictions/                # Batch predictions (.csv)├── reports/                           # Generated reports
-
-┣ 📂 mlruns/                       # MLflow experiments│   ├── folder_audit_after.json        # File inventory
-
-┃ ┗ 📂 models/                     # Model registry│   ├── full_pipeline_summary.json     # Execution summary
-
-┣ 📂 tests/                        # Test suite (226 tests)│   ├── kafka_raw_sample.json          # Input samples (MP2)
-
-┃ ┣ 📄 test_data_validation.py     # Data tests│   └── kafka_predictions_sample.json  # Output samples (MP2)
-
-┃ ┣ 📄 test_preprocessing.py       # Feature tests│
-
-┃ ┣ 📄 test_training.py            # Training tests├── docs/                              # Documentation
-
-┃ ┣ 📄 test_evaluation.py          # Evaluation tests│   ├── kafka_quickstart.md            # Kafka quick start (MP2)
-
-┃ ┣ 📄 test_inference.py           # Inference tests│   ├── KAFKA_STREAMING_EVIDENCE.md    # Evidence report (MP2)
-
-┃ ┗ 📄 test_integration.py         # E2E tests│   ├── kafka_schema.md                # Schema docs
-
-┣ 📂 docs/                         # Documentation│   ├── kafka_integration_testing.md   # Integration tests
-
-┃ ┣ 📄 kafka_quickstart.md         # Kafka setup guide│   ├── screenshots_02/                # Kafka screenshots (MP2)
-
-┃ ┣ 📄 KAFKA_STREAMING_EVIDENCE.md # Evidence report│   └── images/                        # Screenshots & diagrams
-
-┃ ┗ 📂 screenshots_02/             # Visual evidence│       ├── mlflow_ui.png              # MLflow dashboard
-
-┣ 📂 reports/                      # Generated reports│       └── airflow_ui.png             # Airflow DAG visualization
-
-┃ ┣ 📄 compliance_report_full_e2e.md  # MP1+MP2 compliance│
-
-┃ ┣ 📄 mp2_final_summary.json         # Final results├── docker-compose.kafka.yml           # Kafka setup (MP2)
-
-┃ ┗ 📄 FINAL_PRODUCTION_AUDIT.md      # Production audit├── compliance_report.md               # MP1 Compliance (97.5%)
-
-┣ 📂 logs/                         # Execution logs└── compliance_kafka_report.md         # MP2 Compliance (100%)
-
-┣ 📂 notebooks/                    # Jupyter notebooks```
-
-┃ ┣ 📄 01_data_exploration.ipynb   # EDA
-
-┃ ┣ 📄 02_feature_engineering.ipynb---
-
-┃ ┣ 📄 03_model_dev_experiments.ipynb
-
-┃ ┗ 📄 04_performance_benchmarking_comprehensive.ipynb##  🏗️ Architecture
-
-┣ 📄 README.md                     # This file
-
-┣ 📄 requirements.txt              # Python dependencies### Pipeline Flow
-
-┣ 📄 Dockerfile                    # Container image
-
-┣ 📄 docker-compose.kafka.yml      # Kafka stack```
-
-┣ 📄 Makefile                      # Automation commands┌─────────────────┐
-
-┣ 📄 config.yaml                   # Configuration│  Raw Data       │
-
-┗ 📄 LICENSE                       # MIT License│  (7,043 rows)   │
-
+## 📁 Project Structure
+
+<details>
+<summary><b>Click to expand full folder tree</b></summary>
+
+```
+📦 telco-churn-mlops-pipeline/
+┣━━ 📂 src/                              # Source code
+┃   ┣━━ 📂 data/                         # Data processing
+┃   ┃   ┣━━ 📄 __init__.py
+┃   ┃   ┣━━ 📄 load_data.py              # CSV ingestion
+┃   ┃   ┣━━ 📄 preprocess.py             # Feature engineering
+┃   ┃   ┗━━ 📄 eda.py                    # Exploratory analysis
+┃   ┣━━ 📂 models/                       # ML training
+┃   ┃   ┣━━ 📄 __init__.py
+┃   ┃   ┣━━ 📄 train.py                  # Scikit-learn training
+┃   ┃   ┣━━ 📄 train_mlflow.py           # MLflow-tracked training
+┃   ┃   ┗━━ 📄 evaluate.py               # Model evaluation
+┃   ┣━━ 📂 streaming/                    # Kafka integration (MP2)
+┃   ┃   ┣━━ 📄 producer.py               # Batch + streaming modes
+┃   ┃   ┗━━ 📄 consumer.py               # ML inference consumer
+┃   ┣━━ 📂 inference/                    # Predictions
+┃   ┃   ┣━━ 📄 __init__.py
+┃   ┃   ┣━━ 📄 predict.py                # Real-time inference
+┃   ┃   ┗━━ 📄 batch_predict.py          # Batch processing
+┃   ┣━━ 📂 api/                          # REST API
+┃   ┃   ┣━━ 📄 __init__.py
+┃   ┃   ┗━━ 📄 app.py                    # Flask application
+┃   ┗━━ 📂 utils/                        # Utilities
+┃       ┣━━ 📄 __init__.py
+┃       ┗━━ 📄 logger.py                 # Logging config
+┣━━ 📂 pipelines/                        # ML pipelines
+┃   ┣━━ 📄 sklearn_pipeline.py           # Scikit-learn workflow
+┃   ┗━━ 📄 spark_pipeline.py             # PySpark distributed pipeline
+┣━━ 📂 dags/                             # Airflow DAGs
+┃   ┗━━ 📄 telco_churn_dag.py            # Main orchestration DAG
+┣━━ 📂 airflow_home/                     # Airflow home (MP2)
+┃   ┣━━ 📄 airflow.cfg                   # Airflow settings
+┃   ┣━━ 📄 airflow.db                    # SQLite database
+┃   ┗━━ 📂 dags/                         # Kafka DAGs
+┃       ┣━━ 📄 kafka_batch_dag.py        # Batch pipeline
+┃       ┣━━ 📄 kafka_streaming_dag.py    # Streaming pipeline
+┃       ┗━━ 📄 kafka_summary.py          # Summary generator
+┣━━ 📂 scripts/                          # Automation scripts (MP2)
+┃   ┣━━ 📄 kafka_create_topics.sh        # Topic creation
+┃   ┣━━ 📄 run_kafka_demo.sh             # 60-second demo
+┃   ┗━━ 📄 dump_kafka_topics.sh          # Sample extractor
+┣━━ 📂 logs/                             # Execution logs (MP2)
+┃   ┣━━ 📄 kafka_producer.log            # Producer logs
+┃   ┣━━ 📄 kafka_producer_demo.log       # Demo producer
+┃   ┣━━ 📄 kafka_consumer.log            # Consumer logs
+┃   ┗━━ 📄 kafka_consumer_demo.log       # Demo consumer
+┣━━ 📂 tests/                            # Test suite (226/233 passing)
+┃   ┣━━ 📄 __init__.py
+┃   ┣━━ 📄 conftest.py                   # pytest fixtures
+┃   ┣━━ 📄 test_data_validation.py       # Data validation (18 tests)
+┃   ┣━━ 📄 test_preprocessing.py         # Preprocessing (12 tests)
+┃   ┣━━ 📄 test_training.py              # Training (14 tests)
+┃   ┣━━ 📄 test_evaluation.py            # Evaluation (10 tests)
+┃   ┣━━ 📄 test_inference.py             # Inference (19 tests)
+┃   ┗━━ 📄 test_integration.py           # Integration (24 tests)
+┣━━ 📂 data/                             # Data storage
+┃   ┣━━ 📂 raw/                          # Raw dataset
+┃   ┃   ┗━━ 📄 Telco-Customer-Churn.csv  # 7,043 customer records
+┃   ┗━━ 📂 processed/                    # Processed data
+┃       ┣━━ 📄 X_train_processed.npz     # Training features (5,634)
+┃       ┣━━ 📄 X_test_processed.npz      # Test features (1,409)
+┃       ┣━━ 📄 y_train.npz               # Training labels
+┃       ┣━━ 📄 y_test.npz                # Test labels
+┃       ┣━━ 📄 sample.csv                # Sample data for inference
+┃       ┣━━ 📄 feature_names.json        # Feature metadata
+┃       ┗━━ 📄 columns.json              # Column definitions
+┣━━ 📂 notebooks/                        # Jupyter notebooks
+┃   ┣━━ 📄 01_data_exploration.ipynb     # EDA (752 KB)
+┃   ┣━━ 📄 02_feature_engineering.ipynb  # Feature engineering
+┃   ┣━━ 📄 03_model_dev_experiments.ipynb # Model experimentation
+┃   ┗━━ 📄 04_performance_benchmarking_comprehensive.ipynb
+┣━━ 📂 artifacts/                        # Model artifacts
+┃   ┣━━ 📂 models/                       # Trained models
+┃   ┃   ┣━━ 📄 sklearn_pipeline.joblib   # 200 KB
+┃   ┃   ┣━━ 📄 sklearn_pipeline_mlflow.joblib # 200 KB
+┃   ┃   ┣━━ 📄 preprocessor.joblib       # 9 KB
+┃   ┃   ┣━━ 📄 feature_names.json
+┃   ┃   ┣━━ 📄 pipeline_metadata.json    # Spark metadata
+┃   ┃   ┗━━ 📄 feature_importances.json
+┃   ┣━━ 📂 metrics/                      # Performance metrics
+┃   ┃   ┣━━ 📄 sklearn_metrics.json
+┃   ┃   ┣━━ 📄 sklearn_metrics_mlflow.json
+┃   ┃   ┗━━ 📄 spark_rf_metrics.json
+┃   ┣━━ 📂 predictions/                  # Batch predictions
+┃   ┃   ┗━━ 📄 batch_preds.csv           # 100 predictions
+┃   ┗━━ 📂 logs/                         # Execution logs
+┣━━ 📂 mlruns/                           # MLflow tracking
+┃   ┗━━ 📂 [experiment_ids]/             # Multiple experiments
+┣━━ 📂 .github/                          # GitHub workflows
+┃   ┗━━ 📂 workflows/
+┃       ┗━━ 📄 ci.yml                    # CI/CD pipeline
+┣━━ 📂 reports/                          # Generated reports
+┃   ┣━━ 📄 folder_audit_after.json       # File inventory
+┃   ┣━━ 📄 full_pipeline_summary.json    # Execution summary
+┃   ┣━━ 📄 kafka_raw_sample.json         # Input samples (MP2)
+┃   ┗━━ 📄 kafka_predictions_sample.json # Output samples (MP2)
+┣━━ 📂 docs/                             # Documentation
+┃   ┗━━ 📄 kafka_quickstart.md           # Kafka quick start (MP2)
+┣━━ 📄 Makefile                          # Automation commands
+┣━━ 📄 requirements.txt                  # Python dependencies
+┣━━ 📄 config.py                         # Configuration settings
+┣━━ 📄 config.yaml                       # YAML configuration
+┣━━ 📄 setup.py                          # Package setup
+┣━━ 📄 pytest.ini                        # pytest configuration
+┣━━ 📄 Dockerfile                        # Container definition
+┣━━ 📄 docker-compose.yml                # Multi-container setup
+┣━━ 📄 docker-compose.kafka.yml          # Kafka stack
+┗━━ 📄 README.md                         # This file (2,100+ lines)
 ```
 
 </details>
 
-**Key Directories:**
-- `src/` - Modular Python source code
-- `pipelines/` - End-to-end ML workflows
-- `dags/` - Airflow orchestration
-- `tests/` - Comprehensive test suite (97% coverage)
-- `docs/` - Detailed documentation & evidence
-- `artifacts/` - Model outputs & metrics
+---
+
+## 🏗️ Architecture
+
+<div align="center">
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        PRODUCTION MLOPS PIPELINE                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+ 📥 DATA INGESTION           🧪 ML TRAINING              🚀 DEPLOYMENT
+ ┌────────────────┐         ┌──────────────┐           ┌─────────────┐
+ │  Telco CSV     │────────▶│ Preprocessing│──────────▶│  MLflow     │
+ │  7,043 rows    │         │ 19 → 45 feat │           │  Registry   │
+ └────────────────┘         └──────────────┘           └─────────────┘
+                                    │                          │
+                                    ▼                          ▼
+                            ┌──────────────┐           ┌─────────────┐
+                            │ Model Train  │──────────▶│  REST API   │
+                            │ GB Classifier│           │  Flask:5000 │
+                            └──────────────┘           └─────────────┘
+
+ 🌊 KAFKA STREAMING          🔄 ORCHESTRATION           📊 MONITORING
+ ┌────────────────┐         ┌──────────────┐           ┌─────────────┐
+ │   Producer     │───JSON─▶│  Kafka Topic │──────────▶│  Airflow    │
+ │ Batch/Stream   │         │ telco.raw.*  │           │  DAG Runs   │
+ └────────────────┘         └──────────────┘           └─────────────┘
+                                    │                          │
+                                    ▼                          ▼
+                            ┌──────────────┐           ┌─────────────┐
+                            │   Consumer   │──────────▶│  Logs &     │
+                            │ ML Inference │           │  Metrics    │
+                            └──────────────┘           └─────────────┘
+```
+
+</div>
+
+### 📊 Pipeline Flow
+
+```mermaid
+graph LR
+    A[CSV Data] --> B[Validation]
+    B --> C[Preprocessing]
+    C --> D[Model Training]
+    D --> E[MLflow Logging]
+    E --> F[Kafka Producer]
+    F --> G[Kafka Topics]
+    G --> H[Kafka Consumer]
+    H --> I[Airflow Orchestration]
+    I --> J[REST API]
+    J --> K[Predictions]
+```
+
+**End-to-End Workflow:**
+1. **Data Ingestion** → Load and validate CSV (7,043 records)
+2. **Preprocessing** → Feature engineering (19 → 45 features)
+3. **Model Training** → Train Gradient Boosting Classifier
+4. **MLflow Logging** → Track experiments and register model
+5. **Kafka Streaming** → Publish customer data to topics
+6. **ML Inference** → Consume and predict churn probability
+7. **Airflow Orchestration** → Schedule and monitor workflows
+8. **REST API** → Serve predictions via Flask endpoints
 
 ---
 
-##  ⚙️ Installation & Setup
+## 🛠️ Tech Stack
+
+<div align="center">
+
+| Category | Technologies |
+|----------|-------------|
+| **ML & Data Science** | ![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python) ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.6-orange?logo=scikit-learn) ![PySpark](https://img.shields.io/badge/PySpark-4.0-E25A1C?logo=apache-spark) ![pandas](https://img.shields.io/badge/pandas-2.2-150458?logo=pandas) ![NumPy](https://img.shields.io/badge/NumPy-2.2-013243?logo=numpy) |
+| **MLOps & Tracking** | ![MLflow](https://img.shields.io/badge/MLflow-2.17-0194E2?logo=mlflow) ![DVC](https://img.shields.io/badge/DVC-Enabled-945DD6) ![pytest](https://img.shields.io/badge/pytest-8.3-0A9EDC?logo=pytest) |
+| **Streaming & Messaging** | ![Kafka](https://img.shields.io/badge/Kafka-3.9-black?logo=apache-kafka) ![kafka-python](https://img.shields.io/badge/kafka--python-2.0-black) |
+| **Orchestration** | ![Airflow](https://img.shields.io/badge/Airflow-3.0-017CEE?logo=apache-airflow) |
+| **Deployment & DevOps** | ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker) ![Flask](https://img.shields.io/badge/Flask-3.1-000000?logo=flask) ![Gunicorn](https://img.shields.io/badge/Gunicorn-23.0-499848?logo=gunicorn) |
+| **Development Tools** | ![Jupyter](https://img.shields.io/badge/Jupyter-Notebooks-F37626?logo=jupyter) ![YAML](https://img.shields.io/badge/YAML-Config-CB171E) ![Makefile](https://img.shields.io/badge/Makefile-Automation-427819) |
+
+</div>
+
+---
+
+## ⚙️ Installation & Setup
 
 ### Prerequisites
 
@@ -458,57 +359,27 @@ CSV Data → Validation → Preprocessing → Model Training → MLflow Logging�
 ### Step 1: Clone Repository
 
 ```bash
-# Start Zookeeper + Kafka
-docker-compose -f docker-compose.kafka.yml up -d
-
-# Verify running
-docker-compose -f docker-compose.kafka.yml ps
-
-# Create topics
-docker exec -it kafka kafka-topics.sh --create \
-    --bootstrap-server localhost:9092 \
-    --topic telco.raw.customers \
-    --partitions 3 \
-    --replication-factor 1
+git clone https://github.com/deaneeth/telco-churn-mlops-pipeline.git
+cd telco-churn-mlops-pipeline
 ```
 
-> 💡 **Tip:** For detailed Kafka setup, see [`docs/kafka_quickstart.md`](docs/kafka_quickstart.md)
+### Step 2: Set Up Python Environment
 
----
+```bash
+# Create virtual environment
+python -m venv venv
 
-##  🚀 Getting Started
+# Activate (Windows)
+venv\Scripts\activate
 
-### Prerequisites
+# Activate (Linux/Mac)
+source venv/bin/activate
 
-- **Python**: 3.13 (recommended) or 3.10+
-
-airflow users create \
-
-    --username admin \- **Python**: 3.13 (recommended) or 3.10+
-
-    --password admin \- **Operating System**: Windows 11 / macOS / Linux (Ubuntu 22.04+)
-
-    --firstname Admin \- **RAM**: Minimum 8 GB (16 GB recommended)
-
-    --lastname User \- **Disk Space**: 5 GB free space
-
-    --role Admin \- **Docker**: 20.10+ (for containerized deployment)
-
-    --email admin@example.com- **WSL2**: Required for Airflow on Windows
-
-
-
-# Start services### Installation
-
-airflow webserver -p 8080 &  # UI at http://localhost:8080
-
-airflow scheduler &#### 1. Clone the Repository
-
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-```
-
-### Step 5: Start Kafka Stack (Optional)
+### Step 3: Configure Kafka (Optional for MP2)
 
 ```bash
 # Start Zookeeper + Kafka
@@ -529,10 +400,31 @@ docker exec -it kafka kafka-topics.sh --create \
 
 ---
 
-# 2. Run batch inference
-python src/inference/batch_predict.py
+## 🚀 Getting Started
+### Quick Start - Run End-to-End Pipeline
 
-# Expected output:
+```bash
+# 1. Train model
+python pipelines/sklearn_pipeline.py
+
+# 2. Start MLflow UI
+mlflow ui --port 5000
+
+# 3. Make predictions
+python src/inference/predict.py
+
+# 4. Start REST API
+python src/api/app.py
+```
+
+### Workflow Options
+
+#### Option A: Scikit-learn Pipeline (Fastest)
+
+```bash
+# 1. Train model
+python pipelines/sklearn_pipeline.py
+
 # ✅ Predictions saved: artifacts/predictions/batch_preds.csv
 # ✅ Total predictions: 1,409
 ```
