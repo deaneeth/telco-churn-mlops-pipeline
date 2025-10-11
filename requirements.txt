@@ -8,6 +8,7 @@ mlflow>=2.0.0
 # Streaming (Mini Project 2)
 kafka-python>=2.0.2
 jsonschema>=4.0.0
+prometheus-client>=0.18.0  # Metrics and monitoring
 
 # Orchestration
 apache-airflow>=2.5.0

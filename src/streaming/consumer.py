@@ -26,17 +26,28 @@ Date: 2025-06-11
 import argparse
 import json
 import logging
+import logging.handlers
 import signal
 import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+from threading import Thread
 
 import joblib
 import pandas as pd
 from kafka import KafkaConsumer, KafkaProducer
 from kafka.errors import KafkaError
+
+# Prometheus client for metrics
+try:
+    from prometheus_client import Counter, Histogram, Gauge, start_http_server, Info, generate_latest, REGISTRY
+    from prometheus_client.core import CollectorRegistry
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_AVAILABLE = False
+    Counter = Histogram = Gauge = Info = None
 
 # Dual import strategy for schema validator (supports both module and script execution)
 try:
@@ -69,10 +80,124 @@ EXPECTED_FEATURES = [
 # Global flag for graceful shutdown
 shutdown_requested = False
 
+# Prometheus Metrics (initialized if prometheus_client available)
+if PROMETHEUS_AVAILABLE:
+    # Counters for message processing
+    MESSAGES_PROCESSED = Counter(
+        'kafka_messages_processed_total',
+        'Total number of messages processed',
+        ['status', 'topic']  # status: success or failed
+    )
+    
+    MESSAGES_FAILED = Counter(
+        'kafka_messages_failed_total',
+        'Total number of failed messages',
+        ['error_type', 'topic']  # error_type: validation_error, inference_error, etc.
+    )
+    
+    # Histogram for processing latency
+    PROCESSING_LATENCY = Histogram(
+        'kafka_processing_latency_seconds',
+        'Message processing latency in seconds',
+        ['operation']  # operation: validation, transformation, inference, total
+    )
+    
+    # Gauge for current state
+    CONSUMER_LAG = Gauge(
+        'kafka_consumer_lag',
+        'Current consumer lag',
+        ['topic', 'partition']
+    )
+    
+    MODEL_LOADED = Gauge(
+        'kafka_consumer_model_loaded',
+        'Whether the ML model is loaded (1=loaded, 0=not loaded)'
+    )
+    
+    BROKER_CONNECTED = Gauge(
+        'kafka_consumer_broker_connected',
+        'Whether consumer is connected to broker (1=connected, 0=disconnected)'
+    )
+    
+    # Info metric for metadata
+    CONSUMER_INFO = Info(
+        'kafka_consumer',
+        'Consumer metadata and configuration'
+    )
+else:
+    # Dummy metrics if Prometheus not available
+    class DummyMetric:
+        def labels(self, **kwargs):
+            return self
+        def inc(self, *args, **kwargs):
+            pass
+        def observe(self, *args, **kwargs):
+            pass
+        def set(self, *args, **kwargs):
+            pass
+        def info(self, *args, **kwargs):
+            pass
+    
+    MESSAGES_PROCESSED = DummyMetric()
+    MESSAGES_FAILED = DummyMetric()
+    PROCESSING_LATENCY = DummyMetric()
+    CONSUMER_LAG = DummyMetric()
+    MODEL_LOADED = DummyMetric()
+    BROKER_CONNECTED = DummyMetric()
+    CONSUMER_INFO = DummyMetric()
+
+
+class JSONFormatter(logging.Formatter):
+    """
+    Custom JSON formatter for structured logging.
+    
+    Outputs log records as JSON objects with standard fields plus custom extras.
+    """
+    
+    def format(self, record):
+        """Format log record as JSON."""
+        log_data = {
+            'timestamp': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+            'level': record.levelname,
+            'logger': record.name,
+            'message': record.getMessage(),
+            'module': record.module,
+            'function': record.funcName,
+            'line': record.lineno
+        }
+        
+        # Add extra fields if present
+        if hasattr(record, 'message_id'):
+            log_data['message_id'] = record.message_id
+        if hasattr(record, 'topic'):
+            log_data['topic'] = record.topic
+        if hasattr(record, 'partition'):
+            log_data['partition'] = record.partition
+        if hasattr(record, 'offset'):
+            log_data['offset'] = record.offset
+        if hasattr(record, 'latency_ms'):
+            log_data['latency_ms'] = record.latency_ms
+        if hasattr(record, 'event_type'):
+            log_data['event_type'] = record.event_type
+        if hasattr(record, 'error_type'):
+            log_data['error_type'] = record.error_type
+        if hasattr(record, 'prediction'):
+            log_data['prediction'] = record.prediction
+        if hasattr(record, 'churn_probability'):
+            log_data['churn_probability'] = record.churn_probability
+        
+        # Add exception info if present
+        if record.exc_info:
+            log_data['exception'] = self.formatException(record.exc_info)
+        
+        return json.dumps(log_data)
+
 
 def setup_logging(log_level: str = "INFO") -> logging.Logger:
     """
-    Configure logging for the consumer.
+    Configure logging for the consumer with dual output:
+    - Console: Human-readable format
+    - File (structured JSON): Machine-readable format for log aggregation
     
     Args:
         log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
@@ -81,17 +206,21 @@ def setup_logging(log_level: str = "INFO") -> logging.Logger:
         Configured logger instance
     """
     # Create logs directory if it doesn't exist
-    log_dir = Path("artifacts/logs")
+    log_dir = Path("logs")
     log_dir.mkdir(parents=True, exist_ok=True)
     
+    # Also create artifacts/logs for timestamped files
+    artifact_log_dir = Path("artifacts/logs")
+    artifact_log_dir.mkdir(parents=True, exist_ok=True)
+    
     # Create logger
-    logger = logging.getLogger("telco_consumer")
+    logger = logging.getLogger("kafka_consumer")
     logger.setLevel(getattr(logging, log_level.upper()))
     
     # Clear existing handlers to avoid duplicates
     logger.handlers.clear()
     
-    # Console handler with simple format
+    # Console handler with simple, human-readable format
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
     console_format = logging.Formatter(
@@ -101,10 +230,21 @@ def setup_logging(log_level: str = "INFO") -> logging.Logger:
     console_handler.setFormatter(console_format)
     logger.addHandler(console_handler)
     
-    # File handler with detailed format
+    # Structured JSON file handler for machine-readable logs
+    json_handler = logging.handlers.RotatingFileHandler(
+        log_dir / "kafka_consumer.log",
+        maxBytes=10_000_000,  # 10MB
+        backupCount=5,
+        encoding='utf-8'
+    )
+    json_handler.setLevel(logging.DEBUG)
+    json_handler.setFormatter(JSONFormatter())
+    logger.addHandler(json_handler)
+    
+    # Traditional timestamped file handler for human-readable logs
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     file_handler = logging.FileHandler(
-        log_dir / f"consumer_{timestamp}.log",
+        artifact_log_dir / f"consumer_{timestamp}.log",
         encoding='utf-8'
     )
     file_handler.setLevel(logging.DEBUG)
@@ -128,9 +268,79 @@ def signal_handler(signum, frame):
     """
     global shutdown_requested
     signal_name = signal.Signals(signum).name
-    logger = logging.getLogger("telco_consumer")
+    logger = logging.getLogger("kafka_consumer")
     logger.info(f"Received {signal_name} signal. Initiating graceful shutdown...")
     shutdown_requested = True
+
+
+def start_metrics_server(port: int = 8000) -> Optional[Thread]:
+    """
+    Start Prometheus metrics HTTP server in a background thread.
+    
+    Args:
+        port: Port number for metrics endpoint (default: 8000)
+    
+    Returns:
+        Thread object if Prometheus available, None otherwise
+    """
+    if not PROMETHEUS_AVAILABLE:
+        logger = logging.getLogger("kafka_consumer")
+        logger.warning("Prometheus client not available. Metrics server not started.")
+        return None
+    
+    try:
+        # Start HTTP server in a daemon thread
+        start_http_server(port)
+        logger = logging.getLogger("kafka_consumer")
+        logger.info(f"Metrics server started on http://localhost:{port}/metrics")
+        return None  # start_http_server runs in its own thread
+    except OSError as e:
+        logger = logging.getLogger("kafka_consumer")
+        logger.error(f"Failed to start metrics server on port {port}: {e}")
+        return None
+
+
+def get_health_status(consumer: Optional[KafkaConsumer] = None, 
+                     model_loaded: bool = False) -> dict:
+    """
+    Get current health status of the consumer.
+    
+    Args:
+        consumer: KafkaConsumer instance (None if not initialized)
+        model_loaded: Whether ML model is loaded
+    
+    Returns:
+        Dictionary with health status
+    """
+    health = {
+        "status": "healthy",
+        "timestamp": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+        "checks": {
+            "broker_connection": "unknown",
+            "model_loaded": "pass" if model_loaded else "fail"
+        }
+    }
+    
+    # Check broker connection
+    if consumer is not None:
+        try:
+            # Try to get topics - this will fail if broker is unreachable
+            topics = consumer.topics()
+            health["checks"]["broker_connection"] = "pass"
+            BROKER_CONNECTED.set(1)
+        except Exception as e:
+            health["checks"]["broker_connection"] = "fail"
+            health["status"] = "unhealthy"
+            health["error"] = str(e)
+            BROKER_CONNECTED.set(0)
+    else:
+        health["checks"]["broker_connection"] = "not_initialized"
+    
+    # Overall health based on checks
+    if any(v == "fail" for v in health["checks"].values()):
+        health["status"] = "unhealthy"
+    
+    return health
 
 
 def parse_args() -> argparse.Namespace:
@@ -989,6 +1199,19 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     
+    # Start Prometheus metrics server
+    start_metrics_server(port=8000)
+    
+    # Set consumer info metadata
+    if PROMETHEUS_AVAILABLE:
+        CONSUMER_INFO.info({
+            'version': '1.0.0',
+            'mode': args.mode,
+            'broker': args.broker,
+            'consumer_group': args.consumer_group,
+            'model_backend': args.model_backend
+        })
+    
     # Check for schema validator if validation is enabled
     if args.validate and SchemaValidator is None:
         logger.error("✗ Schema validation requested but SchemaValidator not available")
@@ -999,6 +1222,7 @@ def main():
         # Load model
         if args.model_backend == 'sklearn':
             model = load_sklearn_model(args.model_path, logger)
+            MODEL_LOADED.set(1)  # Mark model as loaded
         else:
             logger.error(f"✗ Model backend '{args.model_backend}' not yet implemented")
             sys.exit(1)

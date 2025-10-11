@@ -21,6 +21,7 @@ Version: 1.0.0
 import argparse
 import json
 import logging
+import logging.handlers
 import os
 import signal
 import sys
@@ -61,6 +62,54 @@ LOG_FILE = "logs/kafka_producer.log"
 shutdown_requested = False
 
 
+class JSONFormatter(logging.Formatter):
+    """
+    Custom JSON formatter for structured logging.
+    
+    Outputs log records as JSON objects with standard fields plus custom extras.
+    """
+    
+    def format(self, record):
+        """Format log record as JSON."""
+        log_data = {
+            'timestamp': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+            'level': record.levelname,
+            'logger': record.name,
+            'message': record.getMessage(),
+            'module': record.module,
+            'function': record.funcName,
+            'line': record.lineno
+        }
+        
+        # Add extra fields if present
+        if hasattr(record, 'message_id'):
+            log_data['message_id'] = record.message_id
+        if hasattr(record, 'topic'):
+            log_data['topic'] = record.topic
+        if hasattr(record, 'partition'):
+            log_data['partition'] = record.partition
+        if hasattr(record, 'offset'):
+            log_data['offset'] = record.offset
+        if hasattr(record, 'latency_ms'):
+            log_data['latency_ms'] = record.latency_ms
+        if hasattr(record, 'event_type'):
+            log_data['event_type'] = record.event_type
+        if hasattr(record, 'error_type'):
+            log_data['error_type'] = record.error_type
+        if hasattr(record, 'batch_size'):
+            log_data['batch_size'] = record.batch_size
+        if hasattr(record, 'success_count'):
+            log_data['success_count'] = record.success_count
+        if hasattr(record, 'failure_count'):
+            log_data['failure_count'] = record.failure_count
+        
+        # Add exception info if present
+        if record.exc_info:
+            log_data['exception'] = self.formatException(record.exc_info)
+        
+        return json.dumps(log_data)
+
+
 def setup_logging(log_level: str = "INFO") -> logging.Logger:
     """Configure structured logging for the producer.
     
@@ -78,21 +127,22 @@ def setup_logging(log_level: str = "INFO") -> logging.Logger:
     logger = logging.getLogger("kafka_producer")
     logger.setLevel(getattr(logging, log_level.upper()))
     
-    # File handler
+    # Clear existing handlers to avoid duplicates
+    logger.handlers.clear()
+    
+    # File handler with JSON formatting for machine-readable logs
     file_handler = logging.FileHandler(LOG_FILE)
     file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(JSONFormatter())
     
-    # Console handler
+    # Console handler with human-readable formatting
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
-    
-    # Formatter
-    formatter = logging.Formatter(
+    console_formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
+    console_handler.setFormatter(console_formatter)
     
     # Add handlers
     logger.addHandler(file_handler)
@@ -239,7 +289,13 @@ def publish_message(
         is_valid, errors = validator.validate(message)
         if not is_valid:
             logger.warning(
-                f"Message validation failed for key {key}: {len(errors)} error(s)"
+                f"Message validation failed for key {key}: {len(errors)} error(s)",
+                extra={
+                    'message_id': key,
+                    'topic': topic,
+                    'event_type': 'validation_failure',
+                    'error_type': 'schema_validation'
+                }
             )
             for error in errors[:3]:  # Log first 3 errors
                 logger.debug(f"  - {error}")
@@ -252,21 +308,47 @@ def publish_message(
         return True, None
     
     try:
+        start_time = time.time()
         future = producer.send(topic, key=key, value=message)
         # Block until message is sent or timeout
         record_metadata = future.get(timeout=10)
+        latency_ms = (time.time() - start_time) * 1000
         
         logger.debug(
             f"Published to {topic} | Partition: {record_metadata.partition} | "
-            f"Offset: {record_metadata.offset} | Key: {key}"
+            f"Offset: {record_metadata.offset} | Key: {key}",
+            extra={
+                'message_id': key,
+                'topic': topic,
+                'partition': record_metadata.partition,
+                'offset': record_metadata.offset,
+                'latency_ms': round(latency_ms, 2),
+                'event_type': 'message_published'
+            }
         )
         return True, None
         
     except KafkaError as e:
-        logger.error(f"Kafka error publishing message: {e}")
+        logger.error(
+            f"Kafka error publishing message: {e}",
+            extra={
+                'message_id': key,
+                'topic': topic,
+                'event_type': 'publish_failure',
+                'error_type': 'kafka_error'
+            }
+        )
         return False, None
     except Exception as e:
-        logger.error(f"Unexpected error publishing message: {e}")
+        logger.error(
+            f"Unexpected error publishing message: {e}",
+            extra={
+                'message_id': key,
+                'topic': topic,
+                'event_type': 'publish_failure',
+                'error_type': 'unknown_error'
+            }
+        )
         return False, None
 
 
