@@ -1,0 +1,19 @@
+{
+  "total_predictions": 0,
+  "churn_predictions": {
+    "Yes": 0,
+    "No": 0
+  },
+  "churn_rate": 0,
+  "average_churn_probability": 0,
+  "high_risk_customers": 0,
+  "timestamp": "2025-10-11T21:27:10.025948",
+  "warning": "No predictions found in output topic",
+  "pipeline_metrics": {
+    "messages_sent": 0,
+    "messages_processed": 0,
+    "processing_duration_sec": 7.43,
+    "throughput_msg_per_sec": 0.0,
+    "success_rate": 0
+  }
+}
