@@ -1,0 +1,82 @@
+[
+  {
+    "customerID": "9867-JCZSP",
+    "churn_probability": 0.044259,
+    "prediction": "No",
+    "event_ts": "2025-10-10T16:57:25.154355Z",
+    "processed_ts": "2025-10-11T17:45:41.158344Z",
+    "inference_latency_ms": 7.3
+  },
+  {
+    "customerID": "4671-VJLCL",
+    "churn_probability": 0.031697,
+    "prediction": "No",
+    "event_ts": "2025-10-10T19:43:01.169986Z",
+    "processed_ts": "2025-10-11T17:45:41.166414Z",
+    "inference_latency_ms": 7.87
+  },
+  {
+    "customerID": "7760-OYPDY",
+    "churn_probability": 0.71197,
+    "prediction": "Yes",
+    "event_ts": "2025-10-11T03:28:23.234190Z",
+    "processed_ts": "2025-10-11T17:45:41.176573Z",
+    "inference_latency_ms": 9.92
+  },
+  {
+    "customerID": "4667-QONEA",
+    "churn_probability": 0.071376,
+    "prediction": "No",
+    "event_ts": "2025-10-11T12:54:59.440925Z",
+    "processed_ts": "2025-10-11T17:45:41.185280Z",
+    "inference_latency_ms": 8.21
+  },
+  {
+    "customerID": "8769-KKTPH",
+    "churn_probability": 0.150303,
+    "prediction": "No",
+    "event_ts": "2025-10-11T01:35:51.469193Z",
+    "processed_ts": "2025-10-11T17:45:41.191875Z",
+    "inference_latency_ms": 6.34
+  },
+  {
+    "customerID": "3957-SQXML",
+    "churn_probability": 0.027255,
+    "prediction": "No",
+    "event_ts": "2025-10-11T03:20:57.497336Z",
+    "processed_ts": "2025-10-11T17:45:41.202504Z",
+    "inference_latency_ms": 10.45
+  },
+  {
+    "customerID": "0434-CSFON",
+    "churn_probability": 0.493086,
+    "prediction": "No",
+    "event_ts": "2025-10-11T12:50:47.633143Z",
+    "processed_ts": "2025-10-11T17:45:41.215855Z",
+    "inference_latency_ms": 13.06
+  },
+  {
+    "customerID": "0526-SXDJP",
+    "churn_probability": 0.036424,
+    "prediction": "No",
+    "event_ts": "2025-10-11T03:01:42.660256Z",
+    "processed_ts": "2025-10-11T17:45:41.223793Z",
+    "inference_latency_ms": 7.16
+  },
+  {
+    "customerID": "5122-CYFXA",
+    "churn_probability": 0.440194,
+    "prediction": "No",
+    "event_ts": "2025-10-11T15:43:26.700552Z",
+    "processed_ts": "2025-10-11T17:45:41.229546Z",
+    "inference_latency_ms": 5.52
+  },
+  {
+    "customerID": "8627-ZYGSZ",
+    "churn_probability": 0.225972,
+    "prediction": "No",
+    "event_ts": "2025-10-11T13:24:56.715473Z",
+    "processed_ts": "2025-10-11T17:45:41.238334Z",
+    "inference_latency_ms": 8.48
+  }
+]
