@@ -93,6 +93,14 @@ This project demonstrates key MLOps and production ML skills:
 - ✅ **Docker**: Containerized API deployment
 - ✅ **pytest**: 93 passing tests with 97% coverage
 
+### 🌊 Kafka Streaming (Mini Project 2)
+- ✅ **Producer**: Streaming + batch modes with checkpoint resume
+- ✅ **Consumer**: Real-time ML inference (8.2ms avg latency)
+- ✅ **Topics**: `telco.raw.customers` → `telco.churn.predictions`
+- ✅ **Reliability**: Dead letter queue, 100% success rate
+- ✅ **Orchestration**: Airflow DAGs for batch and streaming pipelines
+- 📚 **Quick Start**: See [`docs/kafka_quickstart.md`](docs/kafka_quickstart.md)
+
 ### 🚀 Deployment
 - ✅ REST API with Flask (`/ping`, `/predict` endpoints)
 - ✅ Batch inference pipeline (100+ predictions)
@@ -145,6 +153,9 @@ telco-churn-prediction-mini-project-1/
 │   │   ├── train.py                   # Scikit-learn training
 │   │   ├── train_mlflow.py            # MLflow-tracked training
 │   │   └── evaluate.py                # Model evaluation
+│   ├── streaming/                     # Kafka streaming (MP2)
+│   │   ├── producer.py                # Producer (streaming + batch)
+│   │   └── consumer.py                # Consumer with ML inference
 │   ├── inference/                     # Prediction pipelines
 │   │   ├── __init__.py
 │   │   ├── predict.py                 # Real-time prediction
@@ -162,6 +173,25 @@ telco-churn-prediction-mini-project-1/
 │
 ├── dags/                              # Airflow DAGs
 │   └── telco_churn_dag.py             # Main orchestration DAG
+│
+├── airflow_home/                      # Airflow home (MP2)
+│   ├── airflow.cfg                    # Airflow settings
+│   ├── airflow.db                     # SQLite database
+│   └── dags/                          # Kafka DAGs
+│       ├── kafka_batch_dag.py         # Batch pipeline
+│       ├── kafka_streaming_dag.py     # Streaming pipeline
+│       └── kafka_summary.py           # Summary generator
+│
+├── scripts/                           # Automation scripts (MP2)
+│   ├── kafka_create_topics.sh         # Topic creation
+│   ├── run_kafka_demo.sh              # 60-second demo
+│   └── dump_kafka_topics.sh           # Sample extractor
+│
+├── logs/                              # Execution logs (MP2)
+│   ├── kafka_producer.log             # Producer logs
+│   ├── kafka_producer_demo.log        # Demo producer
+│   ├── kafka_consumer.log             # Consumer logs
+│   └── kafka_consumer_demo.log        # Demo consumer
 │
 ├── tests/                             # Test suite (93 tests)
 │   ├── __init__.py
@@ -204,14 +234,23 @@ telco-churn-prediction-mini-project-1/
 │
 ├── reports/                           # Generated reports
 │   ├── folder_audit_after.json        # File inventory
-│   └── full_pipeline_summary.json     # Execution summary
+│   ├── full_pipeline_summary.json     # Execution summary
+│   ├── kafka_raw_sample.json          # Input samples (MP2)
+│   └── kafka_predictions_sample.json  # Output samples (MP2)
 │
 ├── docs/                              # Documentation
+│   ├── kafka_quickstart.md            # Kafka quick start (MP2)
+│   ├── KAFKA_STREAMING_EVIDENCE.md    # Evidence report (MP2)
+│   ├── kafka_schema.md                # Schema docs
+│   ├── kafka_integration_testing.md   # Integration tests
+│   ├── screenshots_02/                # Kafka screenshots (MP2)
 │   └── images/                        # Screenshots & diagrams
 │       ├── mlflow_ui.png              # MLflow dashboard
 │       └── airflow_ui.png             # Airflow DAG visualization
 │
-└── compliance_report.md               # Compliance validation (97.5%)
+├── docker-compose.kafka.yml           # Kafka setup (MP2)
+├── compliance_report.md               # MP1 Compliance (97.5%)
+└── compliance_kafka_report.md         # MP2 Compliance (100%)
 ```
 
 ---
