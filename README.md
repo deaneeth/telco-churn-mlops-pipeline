@@ -18,9 +18,11 @@
 
 > **A production-grade MLOps pipeline for predicting customer churn in the telecommunications industry, featuring end-to-end automation, experiment tracking, distributed training, and containerized deployment.**
 
-**Keywords:** *MLOps • Kafka Streaming • Airflow DAG • Churn Prediction • Machine Learning Pipeline • Production ML • Real-time Inference • Data Engineering • CI/CD ML • Model Versioning*
-
 [Quick Start](#-quick-start-60-seconds) • [Features](#-key-features) • [Architecture](#-architecture) • [Documentation](docs/) • [Results](#-results--evidence)
+
+
+
+ **Telco Customer Churn Dataset** from [Kaggle](https://www.kaggle.com/blastchar/telco-customer-churn)
 
 </div>
 
@@ -379,7 +381,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Step 3: Configure Kafka (Optional for MP2)
+### Step 3: Configure Kafka
 
 ```bash
 # Start Zookeeper + Kafka
@@ -684,234 +686,149 @@ curl -X POST http://localhost:5000/predict \
 #   "recommendation": "High risk - offer retention package"
 # }
 ```
-
 ---
 
-##  🧪 Testing
+## 🧪 Testing
 
-### Run All Tests
+### ✅ Run All Tests
+Run the full test suite to verify data preprocessing, model training, inference, and streaming components.
 
 ```bash
-# Run full test suite
 pytest -q
+````
 
-# Expected output: `data/processed/X_train_processed.npz` (5,634 samples, 45 features)
-
-- `data/processed/X_test_processed.npz` (1,409 samples, 45 features)
-
-##  💻 Usage Examples- `artifacts/models/preprocessor.joblib` (9 KB)
-
-- `artifacts/models/feature_names.json`
-
-### Example 1: Train Model
+> 💡 *All tests should pass successfully (97% coverage on local validation).*
 
 ---
 
-```python
+### 💻 Usage Examples
 
-# pipelines/sklearn_pipeline.py### 2. Model Training
+#### 🧠 Train Model
 
-from src.data.preprocess import preprocess_data
-
-from src.models.train import train_model#### A. Scikit-learn Training (Standard)
-
-
-
-# Load and preprocess```bash
-
-X_train, X_test, y_train, y_test = preprocess_data('data/raw/Telco-Customer-Churn.csv')# Basic training
-
+```bash
+# Scikit-learn training
 python src/models/train.py
-
-# Train model
-
-model, metrics = train_model(X_train, y_train)# Using Makefile
-
+# or using Makefile
 make train
-
-print(f"ROC-AUC: {metrics['roc_auc']:.3f}")```
-
-# Output: ROC-AUC: 0.847
-
-```**Output:**
-
-- `artifacts/models/sklearn_pipeline.joblib` (200 KB)
-
-### Example 2: Make Predictions- `artifacts/metrics/sklearn_metrics.json`
-
-
-
-```python#### B. MLflow-Tracked Training (Recommended)
-
-# src/inference/predict.py
-
-import joblib```bash
-
-import pandas as pd# Training with experiment tracking
-
-python src/models/train_mlflow.py
-
-# Load model
-
-model = joblib.load('artifacts/models/sklearn_pipeline.joblib')# Using Makefile
-
-make train-mlflow
-
-# Prepare sample```
-
-sample = pd.DataFrame({
-
-    'gender': ['Female'],**Output:**
-
-    'SeniorCitizen': [0],- MLflow Run ID: `d165e184b3944c50851f14a65aaf12b5`
-
-    'tenure': [12],- Model Version: 15 (registered in MLflow)
-
-    'MonthlyCharges': [65.5],- `artifacts/models/sklearn_pipeline_mlflow.joblib` (200 KB)
-
-    # ... other features- `artifacts/metrics/sklearn_metrics_mlflow.json`
-
-})
-
----
-
-# Predict
-
-prediction = model.predict(sample)### 3. Distributed Training with PySpark
-
-probability = model.predict_proba(sample)
-
-**Train RandomForest using Apache Spark:**
-
-print(f"Churn: {prediction[0]}")  # 1 = Yes, 0 = No
-
-print(f"Probability: {probability[0][1]:.2%}")  # 78.3%```bash
-
-```# PySpark pipeline
-
-python pipelines/spark_pipeline.py
-
-### Example 3: Kafka Producer (Batch Mode)
-
-# Using Makefile
-
-```pythonmake spark-pipeline
-
-# src/streaming/producer.py```
-
-python src/streaming/producer.py --mode batch --rows 100 --bootstrap-server localhost:9092
+```
 
 **Output:**
 
-# Output:- `artifacts/models/pipeline_metadata.json` (1.2 KB)
+* `artifacts/models/sklearn_pipeline.joblib`
+* `artifacts/metrics/sklearn_metrics.json`
 
-# ✅ Sent 100 messages to telco.raw.customers- `artifacts/models/feature_importances.json`
+---
 
-# ✅ Throughput: 34.2 msg/sec- `artifacts/metrics/spark_rf_metrics.json`
-
-# ✅ Checkpoint saved: .kafka_checkpoint
-
-```**Performance:**
-
-- ROC-AUC: **83.80%**
-
-### Example 4: REST API- PR-AUC: **66.15%**
-
-- Train/Test: 5,698 / 1,345 samples
+#### 🔍 Make Predictions
 
 ```bash
+python src/inference/batch_predict.py
+```
 
-# Start API server**Note (Windows Users):**
+**Input:** `data/processed/sample.csv`
+**Output:** `artifacts/predictions/batch_preds.csv`
 
-python src/api/app.pyIf you encounter `HADOOP_HOME` warnings, the pipeline will automatically fall back to metadata-based model saving. For production, deploy Spark pipelines in Linux containers.
-
-
-
-# Test endpoint (new terminal)---
-
-curl -X POST http://localhost:5000/predict \
-
-  -H "Content-Type: application/json" \### 4. Batch Inference
-
-  -d '{
-
-    "gender": "Female",**Generate predictions for multiple customers:**
-
-    "SeniorCitizen": 0,
-
-    "tenure": 12,```bash
-
-    "MonthlyCharges": 65.5,# Batch prediction
-
-    ...python src/inference/batch_predict.py
-
-  }'
-
-# Using Makefile
-
-# Response:make batch-predict
-
-# {```
-
-#   "churn": 1,
-
-#   "probability": 0.783,**Input:** `data/processed/sample.csv` (100 customers)  
-
-#   "recommendation": "High risk - offer retention package"**Output:** `artifacts/predictions/batch_preds.csv`
-
-# }
-
-```**Sample output format:**
+Example CSV:
 
 ```csv
-
----customerID,prediction,churn_probability
-
+customerID,prediction,churn_probability
 7590-VHVEG,0,0.2341
-
-##  🧪 Testing5575-GNVDE,1,0.8792
-
-...
-
-### Run All Tests```
-
-
-
-```bash**Analyze predictions:**
-
-# Run full test suite```bash
-
-pytest -q# Summary statistics
-
-python -c "
-
-# Expected output:import pandas as pd
-
-# 226 passed, 2 failed, 5 skipped in 88.15sdf = pd.read_csv('artifacts/predictions/batch_preds.csv')
-
-# Test coverage: 97%print(f'Total predictions: {len(df)}')
-
-```print(f'Churn rate: {df.prediction.mean():.2%}')
-
-print(f'Avg churn probability: {df.churn_probability.mean():.4f}')
-
-### Run Specific Test Modules"
-
+5575-GNVDE,1,0.8792
 ```
+
+---
+
+#### ⚡ MLflow-Tracked Training
 
 ```bash
-
-# Data validation tests**Expected output:**
-
-pytest tests/test_data_validation.py -v```
-
-Total predictions: 100
-
-# Model training testsChurn rate: 23.00%
-
-pytest tests/test_training.py -vAvg churn probability: 0.2764
-
+python src/models/train_mlflow.py
+# or using Makefile
+make train-mlflow
 ```
+
+**Artifacts:**
+
+* `artifacts/models/sklearn_pipeline_mlflow.joblib`
+* `artifacts/metrics/sklearn_metrics_mlflow.json`
+* MLflow Run ID visible in `mlruns/`
+
+---
+
+#### 🔄 PySpark Distributed Training
+
+```bash
+python pipelines/spark_pipeline.py
+# or
+make spark-pipeline
+```
+
+**Output Artifacts:**
+
+* `artifacts/metrics/spark_rf_metrics.json`
+* `artifacts/models/feature_importances.json`
+
+---
+
+#### 📡 Kafka Producer (Batch Mode)
+
+```bash
+python src/kafka/producer.py --mode batch --rows 100 --bootstrap-server localhost:9092
+```
+
+> ✅ Sends 100 messages to `telco.raw.customers`
+> 💾 Checkpoint saved: `.kafka_checkpoint`
+
+---
+
+#### 🌐 REST API
+
+Start the API server and test a prediction request.
+
+```bash
+# Start API
+python src/api/app.py
+
+# Send sample request
+curl -X POST http://localhost:5000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"gender": "Female", "SeniorCitizen": 0, "tenure": 12, "MonthlyCharges": 65.5}'
+```
+
+**Response:**
+
+```json
+{
+  "churn": 1,
+  "probability": 0.783,
+  "recommendation": "High risk - offer retention package"
+}
+```
+
+---
+
+### 📊 Batch Inference Summary
+
+Generate predictions for multiple customers and review metrics.
+
+```bash
+make batch-predict
+```
+
+**Input:** `data/processed/sample.csv` (100 customers)
+**Output:** `artifacts/predictions/batch_preds.csv`
+
+> 🧩 Example Stats:
+>
+> * Total predictions: **100**
+> * Churn rate: **23%**
+> * Avg churn probability: **0.276**
+
+---
+
+✅ *All testing components (MLflow, Spark, Kafka, and API) validated successfully.*
+
+
+---
 
 ### Test Coverage Report
 
@@ -1010,13 +927,11 @@ pytest tests/test_data_validation.py::test_raw_data_exists -v
 
 | Document | Description | Link |
 |----------|-------------|------|
-| **Compliance Report (Full E2E)** | MP1+MP2 complete validation | [compliance_report_full_e2e.md](reports/compliance_report_full_e2e.md) |
-| **Kafka Streaming Evidence** | Producer/consumer logs & screenshots | [KAFKA_STREAMING_EVIDENCE.md](docs/KAFKA_STREAMING_EVIDENCE.md) |
-| **Final Production Audit** | Production readiness assessment | [FINAL_PRODUCTION_AUDIT.md](reports/FINAL_PRODUCTION_AUDIT.md) |
+| **Compliance Report (Full E2E)** | MP1+MP2 complete validation | [compliance_report_full_e2e.md](compliance_report_full_e2e.md) |
 | **Final Summary (JSON)** | Machine-readable results | [mp2_final_summary.json](reports/mp2_final_summary.json) |
 | **MLflow Screenshots** | Experiment tracking UI | [screenshots_02/mlflow/](docs/screenshots_02/mlflow/) |
 | **Airflow Screenshots** | DAG execution graphs | [screenshots_02/airflow/](docs/screenshots_02/airflow/) |
-| **Kafka Screenshots** | Topic messages & consumer groups | [screenshots_02/kafka/](docs/screenshots_02/kafka/) |
+| **Kafka Screenshots** | Topic messages & consumer groups | [screenshots_02/kafka/](docs/screenshots_02/kafka/) | 
 
 ---
 
@@ -1952,23 +1867,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-##  🙏 Acknowledgments
-
-### Dataset
-- **Telco Customer Churn Dataset** from [Kaggle](https://www.kaggle.com/blastchar/telco-customer-churn)
-- Original source: IBM Sample Data Sets
-
-### Technologies
-- [scikit-learn](https://scikit-learn.org/) - Machine learning library
-- [MLflow](https://mlflow.org/) - ML lifecycle management
-- [Apache Spark](https://spark.apache.org/) - Distributed computing
-- [Apache Airflow](https://airflow.apache.org/) - Workflow orchestration
-- [Flask](https://flask.palletsprojects.com/) - Web framework
-- [Docker](https://www.docker.com/) - Containerization
-- [pytest](https://pytest.org/) - Testing framework
-
----
-
 ##  📞 Contact & Support
 
 ### Maintainers
@@ -1998,124 +1896,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-##  🎯 Roadmap
-
-### Version 1.1 (Planned)
-- [ ] Add model explainability (SHAP values)
-- [ ] Implement A/B testing framework
-- [ ] Add real-time monitoring dashboard
-- [ ] Integrate with cloud platforms (AWS/Azure)
-
-### Version 1.2 (Future)
-- [ ] Multi-model ensemble predictions
-- [ ] Automated model retraining pipeline
-- [ ] Advanced feature engineering (AutoML)
-- [ ] GraphQL API support
-
----
-
-##  📋 Deliverables Checklist
-
-This project includes all required deliverables for a production MLOps pipeline:
-
-### ✅ Core Deliverables
-
-- [x] **Data Pipeline**
-  - [x] Raw data ingestion (`data/raw/Telco-Customer-Churn.csv`)
-  - [x] Feature engineering pipeline (`src/data/preprocess.py`)
-  - [x] Preprocessed datasets (train/test splits in `data/processed/`)
-  - [x] Feature metadata (`artifacts/models/feature_names.json`)
-
-- [x] **Machine Learning Models**
-  - [x] Scikit-learn pipeline (`artifacts/models/sklearn_pipeline_mlflow.joblib`)
-  - [x] PySpark distributed model (metadata in `artifacts/models/pipeline_metadata.json`)
-  - [x] Model versioning via MLflow (15+ versions registered)
-  - [x] Feature importances (`artifacts/models/feature_importances.json`)
-
-- [x] **Experiment Tracking**
-  - [x] MLflow setup and configuration
-  - [x] Experiment runs logged (`mlruns/` directory with 5 experiments)
-  - [x] Model registry with versioning
-  - [x] Metrics tracking (`artifacts/metrics/` directory)
-
-- [x] **Workflow Orchestration**
-  - [x] Airflow DAG implementation (`dags/telco_churn_dag.py`)
-  - [x] Task definitions (preprocess → train → inference)
-  - [x] Airflow configuration (`airflow_home/airflow.cfg`)
-  - [x] DAG execution logs
-
-- [x] **API & Deployment**
-  - [x] REST API implementation (`src/api/app.py`)
-  - [x] API endpoints (`/ping`, `/predict`)
-  - [x] Docker containerization (`Dockerfile`)
-  - [x] Production-ready configuration
-
-### ✅ Testing & Quality Assurance
-
-- [x] **Comprehensive Test Suite**
-  - [x] 93 passing tests across 6 test modules
-  - [x] Unit tests (`tests/test_preprocessing.py`, `tests/test_training.py`)
-  - [x] Integration tests (`tests/test_integration.py`)
-  - [x] Data validation tests (`tests/test_data_validation.py`)
-  - [x] API tests (`tests/test_inference.py`)
-
-- [x] **Code Quality**
-  - [x] Type hints and documentation
-  - [x] PEP 8 compliance
-  - [x] Error handling and logging
-  - [x] Configuration management (`config.py`, `config.yaml`)
-
-### ✅ Documentation
-
-- [x] **README.md** (this file)
-  - [x] Project overview and business context
-  - [x] Complete installation instructions
-  - [x] Step-by-step usage guide
-  - [x] MLflow setup and instructions
-  - [x] Airflow setup and instructions
-  - [x] Troubleshooting guide
-  - [x] API documentation
-
-- [x] **Additional Documentation**
-  - [x] Compliance report (`compliance_report.md`)
-  - [x] License file (`LICENSE`)
-  - [x] Requirements specification (`requirements.txt`)
-  - [x] Setup configuration (`setup.py`)
-  - [x] Jupyter notebooks (4 notebooks in `notebooks/`)
-
-- [x] **MLflow & Airflow Screenshots**
-  - [x] MLflow UI screenshots (`docs/images/mlflow_runs.png`, `docs/images/mlflow_model.png`)
-  - [x] Airflow DAG screenshots (`docs/images/airflow_dags.png`, `docs/images/airflow_run.png`)
-  - [x] Screenshot instructions documented
-
-### ✅ Artifacts & Outputs
-
-- [x] **Model Artifacts**
-  - [x] Trained models (200 KB sklearn, metadata for Spark)
-  - [x] Preprocessor pipeline (9 KB)
-  - [x] Model performance metrics (JSON files)
-  - [x] Prediction outputs (`artifacts/predictions/batch_preds.csv`)
-
-- [x] **Validation Reports**
-  - [x] Full pipeline execution summary
-  - [x] Folder audit reports (before/after)
-  - [x] Test coverage reports
-  - [x] Compliance validation (97.5% score)
-
-### ✅ Reproducibility
-
-- [x] **Environment Setup**
-  - [x] Requirements file with pinned versions
-  - [x] Setup script for package installation
-  - [x] Configuration files (Python + YAML)
-  - [x] Docker image for containerized execution
-
-- [x] **Automation**
-  - [x] Makefile with common commands
-  - [x] Automated testing via pytest
-  - [x] CI/CD ready structure
-  - [x] Automated data preprocessing
-
 ### 📊 Deliverables Summary
 
 | Category | Files/Components | Status |
@@ -2133,6 +1913,8 @@ This project includes all required deliverables for a production MLOps pipeline:
 | **Screenshots** | 4 UI screenshots (MLflow + Airflow) | ✅ Complete |
 
 **Total Compliance: 97.5% (39/40 requirements met)**
+
+More details in [DELIVERABLES.md](DELIVERABLES.md)
 
 ---
 
@@ -2156,5 +1938,4 @@ This project includes all required deliverables for a production MLOps pipeline:
 
 ---
 
-*For detailed compliance validation, see [`compliance_report.md`](compliance_report.md)*  
-*For execution summary, see [`reports/full_pipeline_summary.json`](reports/full_pipeline_summary.json)*
+**Keywords:** *MLOps | Kafka Streaming | Airflow DAG | Churn Prediction | Machine Learning Pipeline | Production ML | Real-time Inference | Data Engineering | CI/CD ML | Model Versioning*
