@@ -4,7 +4,7 @@
 
 ### Production MLOps Pipeline with Kafka Streaming & Airflow Orchestration
 
-[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)](https://github.com)
+[![CI Pipeline](https://github.com/deaneeth/telco-churn-mlops-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/deaneeth/telco-churn-mlops-pipeline/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/Tests-226%2F233%20Pass-success)](#-testing)
 [![Coverage](https://img.shields.io/badge/Coverage-97%25-brightgreen)](#-testing)
 [![Python 3.13](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/downloads/)
