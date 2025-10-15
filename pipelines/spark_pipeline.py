@@ -8,7 +8,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, when, isnan, isnull
 from pyspark.sql.types import DoubleType
 from pyspark.ml import Pipeline
-from pyspark.ml.feature import StringIndexer, OneHotEncoder, VectorAssembler
+from pyspark.ml.feature import StringIndexer, OneHotEncoder, VectorAssembler, StandardScaler
 from pyspark.ml.classification import RandomForestClassifier
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 
@@ -67,7 +67,16 @@ def create_spark_pipeline():
         encoded_cols = [f"{col}_encoded" for col in categorical_cols]
         feature_cols = numeric_cols + encoded_cols
         
-        assembler = VectorAssembler(inputCols=feature_cols, outputCol="features")
+        assembler = VectorAssembler(inputCols=feature_cols, outputCol="features_unscaled")
+        
+        # Create StandardScaler for numeric feature normalization
+        print("📏 Creating StandardScaler for feature normalization...")
+        scaler = StandardScaler(
+            inputCol="features_unscaled",
+            outputCol="features",
+            withMean=True,
+            withStd=True
+        )
         
         # Create target label indexer
         label_indexer = StringIndexer(inputCol="Churn", outputCol="ChurnLabel")
@@ -84,7 +93,7 @@ def create_spark_pipeline():
         
         # Create pipeline
         print("🚀 Building and training ML pipeline...")
-        pipeline_stages = indexers + encoders + [assembler, label_indexer, rf]
+        pipeline_stages = indexers + encoders + [assembler, scaler, label_indexer, rf]
         pipeline = Pipeline(stages=pipeline_stages)
         
         # Split data
