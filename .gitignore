@@ -17,10 +17,6 @@ Thumbs.db
 # Environment variables
 .env
 
-# Data files
-data/raw/*
-!data/raw/.gitkeep
-
 # MLflow artifacts
 mlruns/
 
@@ -73,7 +69,6 @@ htmlcov/
 # OS specific
 desktop.ini
 /airflow_env/bin
-deliverables.zip
 
 /wsl_airflow_env
 

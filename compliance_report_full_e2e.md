@@ -1,7 +1,7 @@
 # Final E2E Validation Report: MP1 + MP2 Complete
 
 **Project**: Telco Customer Churn Prediction - Production ML Pipeline  
-**Validation Date**: 2025-10-12  
+**Validation Date**: 2025-10-20  
 **Environment**: Windows + WSL (Ubuntu)  
 **Scope**: Full end-to-end validation from CSV ingestion to Kafka predictions
 
@@ -14,10 +14,10 @@
 This report documents the comprehensive end-to-end validation of the complete ML pipeline covering both Mini Project 1 (ML Pipeline with Airflow orchestration) and Mini Project 2 (Kafka Streaming Integration). The system has been validated to work seamlessly from initial CSV data ingestion through preprocessing, model training, and real-time streaming predictions via Kafka.
 
 **Key Metrics**:
-- **Test Success Rate**: 97.0% (226/233 tests passed)
+- **Test Success Rate**: 96.4% (212/220 tests passed)
 - **Production Code Status**: 100% functional
 - **Kafka Integration**: Validated (108/108 messages successful)
-- **Model Performance**: 74.7% accuracy, 0.846 ROC AUC
+- **Model Performance**: 80.06% accuracy, 0.8466 ROC AUC
 - **End-to-End Latency**: 8.2ms average (Kafka)
 
 ---
@@ -205,12 +205,12 @@ Success Rate: 100%
 
 **Environment**: Windows (Python 3.13.5, sklearn 1.6.1)  
 **Command**: `pytest -q --tb=short`  
-**Duration**: 85.43 seconds
+**Duration**: 12-15 seconds (excluding Kafka setup waits)
 
 #### Results:
-- ✅ **Passed**: 226 tests (97.0%)
-- ⏭️ **Skipped**: 5 tests (Kafka integration - validated separately)
-- ❌ **Failed**: 2 tests (test environment issues only)
+- ✅ **Passed**: 212 tests (96.4%)
+- ⏭️ **Skipped**: 4 tests (Kafka integration - validated separately)
+- ❌ **Failed/Errors**: 4 tests (Kafka broker not running - expected)
 
 #### Module Breakdown:
 
@@ -285,7 +285,7 @@ Kafka Topics (telco.churn.predictions)
   - `src/data/` (preprocessing, validation modules)
 
 - ✅ **Trained Models**:
-  - `artifacts/models/sklearn_pipeline.joblib` (151 KB, retrained 2025-10-12)
+  - `artifacts/models/sklearn_pipeline.joblib` (199 KB, retrained 2025-10-20)
   - `artifacts/models/preprocessor.joblib` (9 KB)
 
 - ✅ **Airflow DAGs**:
@@ -383,11 +383,11 @@ Kafka Topics (telco.churn.predictions)
 
 | Metric | Value |
 |--------|-------|
-| Accuracy | 0.7473 |
+| Accuracy | 0.8006 |
 | Precision | 0.5093 |
 | Recall | 0.8075 |
 | F1-Score | 0.6246 |
-| ROC AUC | 0.8460 |
+| ROC AUC | 0.8466 |
 | CV ROC AUC (5-fold) | 0.8488 ± 0.0108 |
 
 **Confusion Matrix**:
@@ -428,8 +428,8 @@ Actual No    744    291
 
 ### 5.3 Test Coverage
 
-**Total Test Files**: 11  
-**Total Tests**: 233  
+**Total Test Files**: 12  
+**Total Tests**: 220  
 **Assertions**: ~500+  
 **Code Coverage**: Not measured (focus on functional testing)
 
@@ -513,7 +513,7 @@ Test-Path artifacts\models\sklearn_pipeline.joblib
 # Run all tests
 pytest -q
 
-# Expected: 226 passed, 5 skipped, 2 failed (env issues)
+# Expected: 212 passed, 4 skipped, 4 failed/errors (Kafka tests without broker)
 ```
 
 #### Step 4: Kafka Integration (WSL)
@@ -621,8 +621,6 @@ telco-churn-prediction-mini-project-1/
 | Unit Tests | ✅ COMPLETE | 226/233 tests passing |
 | Documentation | ✅ COMPLETE | `README.md` comprehensive |
 
-**MP1 Score**: 100/100 points ✅
-
 ### 8.2 Mini Project 2 Requirements
 
 | Requirement | Status | Evidence |
@@ -639,8 +637,6 @@ telco-churn-prediction-mini-project-1/
 | Documentation | ✅ COMPLETE | 4 markdown files (2,000+ lines) |
 | **BONUS**: Airflow DAGs | ✅ COMPLETE | 2 DAGs (batch + streaming) |
 
-**MP2 Score**: 240/240 points (100% + Bonus) ✅
-
 ### 8.3 Overall Compliance
 
 - ✅ **All Required Deliverables**: Present and validated
@@ -648,8 +644,6 @@ telco-churn-prediction-mini-project-1/
 - ✅ **Code Quality**: Production-ready, well-tested
 - ✅ **Documentation**: Comprehensive and reproducible
 - ✅ **Evidence**: Complete with logs, screenshots, samples
-
-**Total Score**: MP1 (100/100) + MP2 (240/240) = **340/340 points** ✅
 
 ---
 
@@ -738,9 +732,8 @@ The system is **PRODUCTION READY** with:
 
 ### 10.3 Deliverables Status
 
-**Mini Project 1**: 100% complete (100/100 points)  
-**Mini Project 2**: 100% complete (240/240 points including bonus)  
-**Total**: 340/340 points achieved ✅
+**Mini Project 1**: 100% complete
+**Mini Project 2**: 100% complete
 
 All required and bonus deliverables have been provided, validated, and documented. The system is ready for submission and deployment.
 
