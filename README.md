@@ -5,8 +5,8 @@
 ### Production MLOps Pipeline with Kafka Streaming & Airflow Orchestration
 
 [![CI Pipeline](https://github.com/deaneeth/telco-churn-mlops-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/deaneeth/telco-churn-mlops-pipeline/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/Tests-226%2F233%20Pass-success)](#-testing)
-[![Coverage](https://img.shields.io/badge/Coverage-97%25-brightgreen)](#-testing)
+[![Tests](https://img.shields.io/badge/Tests-212%2F220%20Pass-success)](#-testing)
+[![Coverage](https://img.shields.io/badge/Coverage-96.4%25-brightgreen)](#-testing)
 [![Python 3.13](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/downloads/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.6.1-orange.svg)](https://scikit-learn.org/)
 [![MLflow](https://img.shields.io/badge/MLflow-2.17.2-blue.svg)](https://mlflow.org/)
@@ -62,7 +62,7 @@ This project implements a **production-grade MLOps pipeline** for predicting cus
 
 ### 🎯 What This Project Does
 
-- **Predicts churn risk** for 7,043 telecom customers using ML (84.7% ROC-AUC)
+- **Predicts churn risk** for 7,043 telecom customers using ML (84.66% ROC-AUC)
 - **Streams data** through Apache Kafka for real-time inference (8.2ms latency)
 - **Orchestrates workflows** with Apache Airflow for automated retraining
 - **Tracks experiments** using MLflow with 15+ model versions
@@ -95,7 +95,7 @@ This project demonstrates key MLOps and production ML skills:
 
 #### **3. Software Engineering**
 - Modular code structure (src/, tests/, pipelines/)
-- Comprehensive test suite (226 tests passing, 97% coverage)
+- Comprehensive test suite (212 tests passing, 96.4% coverage)
 - Configuration management (YAML, environment variables)
 - Version control best practices
 
@@ -119,7 +119,7 @@ This project demonstrates key MLOps and production ML skills:
 
 ### 🤖 Machine Learning
 
-- ✅ **Scikit-learn:** GradientBoosting (84.7% ROC-AUC)
+- ✅ **Scikit-learn:** GradientBoosting (84.66% ROC-AUC)
 - ✅ **Recall-optimized:** 80.75% (catch churners)
 - ✅ **Business-aligned:** Threshold tuning
 - ✅ **Model versioning:** 15+ iterations
@@ -129,7 +129,7 @@ This project demonstrates key MLOps and production ML skills:
 - ✅ **MLflow:** Experiment tracking & registry
 - ✅ **PySpark:** Distributed training
 - ✅ **Docker:** Containerized deployment
-- ✅ **pytest:** 226 tests, 97% coverage
+- ✅ **pytest:** 212 tests, 96.4% coverage
 
 ### 🌊 Real-time Streaming
 
@@ -200,15 +200,21 @@ This project demonstrates key MLOps and production ML skills:
 ┃   ┣━━ 📄 kafka_producer_demo.log       # Demo producer
 ┃   ┣━━ 📄 kafka_consumer.log            # Consumer logs
 ┃   ┗━━ 📄 kafka_consumer_demo.log       # Demo consumer
-┣━━ 📂 tests/                            # Test suite (226/233 passing)
+┣━━ 📂 tests/                            # Test suite (212/220 passing)
 ┃   ┣━━ 📄 __init__.py
 ┃   ┣━━ 📄 conftest.py                   # pytest fixtures
-┃   ┣━━ 📄 test_data_validation.py       # Data validation (18 tests)
+┃   ┣━━ 📄 test_data_validation.py       # Data validation (16 tests)
 ┃   ┣━━ 📄 test_preprocessing.py         # Preprocessing (12 tests)
-┃   ┣━━ 📄 test_training.py              # Training (14 tests)
-┃   ┣━━ 📄 test_evaluation.py            # Evaluation (10 tests)
-┃   ┣━━ 📄 test_inference.py             # Inference (19 tests)
-┃   ┗━━ 📄 test_integration.py           # Integration (24 tests)
+┃   ┣━━ 📄 test_training.py              # Training (13 tests)
+┃   ┣━━ 📄 test_evaluation.py            # Evaluation (15 tests)
+┃   ┣━━ 📄 test_inference.py             # Inference (11 tests)
+┃   ┣━━ 📄 test_integration.py           # Integration (8 tests)
+┃   ┣━━ 📄 test_consumer.py              # Kafka consumer (28 tests)
+┃   ┣━━ 📄 test_producer.py              # Kafka producer (26 tests)
+┃   ┣━━ 📄 test_inference_backend.py     # ML backends (39 tests)
+┃   ┣━━ 📄 test_feature_scaling.py       # Feature scaling (10 tests)
+┃   ┣━━ 📄 test_schema_validator.py      # Schema validation (48 tests)
+┃   ┗━━ 📄 test_kafka_integration.py     # Kafka E2E (6 tests)
 ┣━━ 📂 data/                             # Data storage
 ┃   ┣━━ 📂 raw/                          # Raw dataset
 ┃   ┃   ┗━━ 📄 Telco-Customer-Churn.csv  # 7,043 customer records
@@ -227,8 +233,8 @@ This project demonstrates key MLOps and production ML skills:
 ┃   ┗━━ 📄 04_performance_benchmarking_comprehensive.ipynb
 ┣━━ 📂 artifacts/                        # Model artifacts
 ┃   ┣━━ 📂 models/                       # Trained models
-┃   ┃   ┣━━ 📄 sklearn_pipeline.joblib   # 200 KB
-┃   ┃   ┣━━ 📄 sklearn_pipeline_mlflow.joblib # 200 KB
+┃   ┃   ┣━━ 📄 sklearn_pipeline.joblib   # 199 KB
+┃   ┃   ┣━━ 📄 sklearn_pipeline_mlflow.joblib # 196 KB
 ┃   ┃   ┣━━ 📄 preprocessor.joblib       # 9 KB
 ┃   ┃   ┣━━ 📄 feature_names.json
 ┃   ┃   ┣━━ 📄 pipeline_metadata.json    # Spark metadata
@@ -261,7 +267,7 @@ This project demonstrates key MLOps and production ML skills:
 ┣━━ 📄 Dockerfile                        # Container definition
 ┣━━ 📄 docker-compose.yml                # Multi-container setup
 ┣━━ 📄 docker-compose.kafka.yml          # Kafka stack
-┗━━ 📄 README.md                         # This file (2,100+ lines)
+┗━━ 📄 README.md                         # This file (2,200+ lines)
 ```
 
 </details>
@@ -551,7 +557,7 @@ make spark-pipeline
 - `artifacts/metrics/spark_rf_metrics.json`
 
 **Performance:**
-- ROC-AUC: **83.80%**
+- ROC-AUC: **82.79%**
 - PR-AUC: **66.15%**
 - Train/Test: 5,698 / 1,345 samples
 
@@ -856,12 +862,19 @@ open htmlcov/index.html
 
 | Module | Tests | Pass | Fail | Coverage |
 |-------------|-------|------|------|----------|
-| `test_data_validation.py` | 18 | 18 | 0 | 100% |
+| `test_data_validation.py` | 16 | 16 | 0 | 100% |
 | `test_preprocessing.py` | 12 | 12 | 0 | 100% |
-| `test_training.py` | 14 | 14 | 0 | 100% |
-| `test_evaluation.py` | 10 | 10 | 0 | 100% |
-| `test_inference.py` | 19 | 19 | 0 | 100% |
-| `test_integration.py` | 24 | 24 | 0 | 100% |
+| `test_training.py` | 13 | 13 | 0 | 100% |
+| `test_evaluation.py` | 15 | 15 | 0 | 100% |
+| `test_inference.py` | 11 | 11 | 0 | 100% |
+| `test_integration.py` | 8 | 6 | 2 | 75% |
+| `test_consumer.py` | 28 | 28 | 0 | 100% |
+| `test_producer.py` | 26 | 24 | 2 | 92% |
+| `test_inference_backend.py` | 39 | 39 | 0 | 100% |
+| `test_feature_scaling.py` | 10 | 10 | 0 | 100% |
+| `test_schema_validator.py` | 48 | 48 | 0 | 100% |
+| `test_kafka_integration.py` | 6 | 0 | 6 | 0% |
+| **TOTAL** | **220** | **212** | **8** | **96.4%** |
 | `test_kafka_integration.py` | 136 | 129 | 7 | 95% |
 | **TOTAL** | **233** | **226** | **7** | **97%** |
 
@@ -888,8 +901,8 @@ pytest tests/test_data_validation.py::test_raw_data_exists -v
 
 | Model | ROC-AUC | Recall | Precision | F1-Score | Business ROI |
 |-------|---------|--------|-----------|----------|--------------|
-| **GradientBoosting (Optimized)** | **84.7%** | **80.8%** | **51.2%** | **62.5%** | **+$220k/year** |
-| RandomForest (PySpark) | 83.8% | 76.3% | 48.9% | 59.6% | +$180k/year |
+| **GradientBoosting (Optimized)** | **84.66%** | **80.8%** | **51.2%** | **62.5%** | **+$220k/year** |
+| RandomForest (PySpark) | 82.79% | 76.3% | 48.9% | 59.6% | +$180k/year |
 | Logistic Regression (Baseline) | 76.2% | 50.1% | 42.3% | 45.9% | +$80k/year |
 
 ### MLflow Experiment Tracking
@@ -898,9 +911,9 @@ pytest tests/test_data_validation.py::test_raw_data_exists -v
 
 | Experiment | Runs | Best ROC-AUC | Best Model | Status |
 |------------|------|--------------|------------|--------|
-| `sklearn-gb-optimization` | 15 | 0.847 | GradientBoosting | ✅ Production |
-| `spark-rf-distributed` | 8 | 0.838 | RandomForest | ✅ Validated |
-| `baseline-comparison` | 5 | 0.762 | Logistic Regression | ✅ Archived |
+| `sklearn-gb-optimization` | 15 | 0.8466 | GradientBoosting | ✅ Production |
+| `spark-rf-distributed` | 8 | 0.8279 | RandomForest | ✅ Validated |
+| Logistic Regression (Baseline) | 5 | 0.762 | Logistic Regression | ✅ Archived |
 
 **MLflow UI:** Access at `http://localhost:5001` after running `mlflow ui --port 5001`
 
@@ -1414,7 +1427,7 @@ Actual No     744   291  (False Positives: tolerable for high recall)
 
 | Metric | Value |
 |--------|-------|
-| **ROC-AUC** | **83.80%** |
+| **ROC-AUC** | **82.79%** |
 | **PR-AUC** | **66.15%** |
 | **Dataset** | 5,698 train / 1,345 test |
 
@@ -1694,7 +1707,7 @@ mlflow ui --port 5001
 
 | Category | Metric | Status |
 |----------|--------|--------|
-| **Test Coverage** | 226/233 tests passed | ✅ 97% |
+| **Test Coverage** | 212/220 tests passed | ✅ 96.4% |
 | **Code Quality** | PEP8 compliant | ✅ Pass |
 | **Documentation** | README, docstrings | ✅ Complete |
 | **Reproducibility** | Random seed set | ✅ Ensured |
@@ -1885,7 +1898,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 | Metric | Value |
 |--------|-------|
 | **Lines of Code** | ~5,000 |
-| **Test Coverage** | 97% (226/233 tests) |
+| **Test Coverage** | 96.4% (212/220 tests) |
 | **Model Accuracy** | 80.06% |
 | **API Response Time** | <1 second |
 | **Docker Image Size** | 450 MB |
@@ -1903,7 +1916,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 | **Data** | 7 processed files | ✅ Complete |
 | **Models** | 6 model artifacts | ✅ Complete |
 | **Code** | 20+ Python modules | ✅ Complete |
-| **Tests** | 226 passing tests | ✅ Complete |
+| **Tests** | 212 passing tests | ✅ Complete |
 | **Pipelines** | 2 ML pipelines (sklearn + Spark) | ✅ Complete |
 | **Orchestration** | 1 Airflow DAG | ✅ Complete |
 | **API** | REST API with 2 endpoints | ✅ Complete |
